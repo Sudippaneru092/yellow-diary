@@ -1,6 +1,10 @@
 <?php
 session_start();
-session_destroy();
-unset($_SESSION['email']);
-header("location:http://localhost/Questionbank/admin/admin.php");
+session_unset();           // Optional but good practice before destroying
+session_destroy();         // Destroys all session data
+
+// Redirect to login page or homepage
+header("Location: http://localhost/project/yellow-diary/admin/admin.php");
+
+exit(); // Always add exit() after header redirect
 ?>

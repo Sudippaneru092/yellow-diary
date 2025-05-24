@@ -4,6 +4,7 @@ if (!isset($_SESSION['admin'])) {
     header("Location: http://localhost/project/yellow-diary/admin/admin.php");
     exit();
 }
+include "admin_user_summary.php";
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -791,7 +792,7 @@ if (!isset($_SESSION['admin'])) {
             <!-- small box -->
             <div class="small-box bg-warning">
               <div class="inner">
-                <h3>44</h3>
+                <h3><?php echo $total_users; ?></h3>
 
                 <p>User Registrations</p>
               </div>
