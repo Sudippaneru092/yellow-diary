@@ -23,15 +23,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $admin = $result->fetch_assoc();
 
         // Verify password
-        if (password_verify($password, $admin['password'])) {
-            $_SESSION['admin'] = $admin['email'];
+       if (password_verify($password, $admin['password'])) {
+            $_SESSION['admin'] = $admin['email'];   // email stored for admin check
+            $_SESSION['user_id'] = $admin['id'];    // add user ID to session
+            $_SESSION['login_time'] = time();       // track login time
 
             header("Location: http://localhost/project/yellow-diary/admin/dashboard.php");
-            ini_set('display_errors', 1);
-            error_reporting(E_ALL);
-
             exit();
-        } else {
+        }
+        else {
             echo "Incorrect password.";
         }
     } else {
