@@ -5,7 +5,7 @@
  * Date Of Creation: 2025/5/20
  * Description: A program to register an admin by inserting data into the database.
  */
-
+try {
 // Include the database connection
 require 'database_connect.php';
 
@@ -63,6 +63,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $stmt->close();
 }
-
-$conn->close();
+}catch(Exception $e) {
+    $conn->close();
+}
 ?>

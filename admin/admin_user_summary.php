@@ -42,3 +42,4 @@ try {
     $avg_time_spent = 0;
     $conn->close();
 }
+?>

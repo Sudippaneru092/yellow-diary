@@ -1,4 +1,5 @@
 <?php
+try {
     session_start();
     require 'database_connect.php';  // make sure $conn is defined
 
@@ -21,4 +22,7 @@
 
     header("Location: http://localhost/project/yellow-diary/admin/admin.php");
     exit();
+}catch (Exception $e) {
+    echo "". $e->getMessage() ."";
+}
 ?>

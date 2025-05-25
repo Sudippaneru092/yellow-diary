@@ -4,7 +4,7 @@
     Date Of Creation: 2025/5/20
     Description : A program for the admin to login to dashboard
 */
-
+try {
 session_start();
 require 'database_connect.php';
 
@@ -40,6 +40,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $stmt->close();
 }
-
-$conn->close();
+} catch (Exception $e) {
+    echo "". $e->getMessage();
+    $conn->close();
+}
 ?>

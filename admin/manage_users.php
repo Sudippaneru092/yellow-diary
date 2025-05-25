@@ -1,4 +1,5 @@
 <?php
+try {
 session_start();
 require 'database_connect.php';
 
@@ -47,5 +48,10 @@ while ($row = $result->fetch_assoc()) {
     </tr>";
 }
 echo "</table>";
-$conn->close();
+}catch (PDOException $e) {
+
+    echo "". $e->getMessage(); 
+    $conn->close();
+}
+
 ?>

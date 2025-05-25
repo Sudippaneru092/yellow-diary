@@ -2,7 +2,7 @@
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
-
+try {
   session_start();
 
   if (!isset($_SESSION['admin']) || !isset($_SESSION['user_id'])) {
@@ -21,6 +21,9 @@ error_reporting(E_ALL);
   $stmt->execute();
 
   include "admin_user_summary.php";
+} catch (Exception $e){
+  echo "". $e->getMessage() ."";
+} 
 ?>
 <!DOCTYPE html>
 <html lang="en">
