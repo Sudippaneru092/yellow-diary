@@ -7,7 +7,7 @@
  */
 try {
 // Include the database connection
-require 'database_connect.php';
+require 'includes/database_connect.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Get and sanitize inputs
@@ -56,7 +56,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $stmt->bind_param("sss", $fullName, $email, $hashedPassword);
 
     if ($stmt->execute()) {
-        echo "Admin registered successfully.";
+        header("Location: admin.php");
+        exit();
     } else {
         echo "Error: " . $stmt->error;
     }

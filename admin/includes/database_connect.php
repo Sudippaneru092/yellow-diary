@@ -1,5 +1,5 @@
 <?php
-/* File Name: database_connect.php
+/* File Name: includes/database_connect.php
     Authors : Sudip Paneru
     Date Of Creation: 2025/5/19
     Description : A program to connect to localhost and databased named yellow_diary

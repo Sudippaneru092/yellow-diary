@@ -1,7 +1,8 @@
 <?php
-try {
     session_start();
-    require 'database_connect.php';  // make sure $conn is defined
+try {
+
+    require 'includes/database_connect.php';  // make sure $conn is defined
 
     if (isset($_SESSION['user_id']) && isset($_SESSION['login_time'])) {
         $user_id = $_SESSION['user_id'];

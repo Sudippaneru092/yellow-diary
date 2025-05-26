@@ -4,7 +4,7 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 // DB connection
-require_once 'admin/database_connect.php';
+require_once 'admin/includes/database_connect.php';
 
 // Check if form was submitted
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

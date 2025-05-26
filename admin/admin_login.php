@@ -1,47 +1,49 @@
 <?php
-/* File Name: admin_login.php
-    Authors : Sudip Paneru
-    Date Of Creation: 2025/5/20
-    Description : A program for the admin to login to dashboard
-*/
-try {
+// File Name: admin_login.php
+// Author: Sudip Paneru
+// Date: 2025/05/20
+// Description: Admin login for dashboard
+
 session_start();
-require 'database_connect.php';
+
+try {
+    require 'includes/database_connect.php';
+
+    if ($_SERVER["REQUEST_METHOD"] == "POST") {
+        $email = trim($_POST['email']);
+        $password = $_POST['password'];
+
+        $stmt = $conn->prepare("SELECT * FROM users WHERE email = ? AND user_type = 'Admin' LIMIT 1");
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($result && $result->num_rows === 1) {
+            $admin = $result->fetch_assoc();
+
+            if (password_verify($password, $admin['password'])) {
+                // Set session variables
+                $_SESSION['admin'] = $admin['email'];
+                $_SESSION['user_id'] = $admin['id'];
+                $_SESSION['username'] = $admin['full_name'];
+                $_SESSION['email'] = $admin['email'];
+                $_SESSION['avatar'] = !empty($admin['avatar']) ? $admin['avatar'] : 'https://via.placeholder.com/80';
+                $_SESSION['login_time'] = time();
+                $_SESSION['user_type'] = $admin['user_type'];
 
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $email = $_POST['email'];
-    $password = $_POST['password'];
-
-    // Get admin from the database
-    $stmt = $conn->prepare("SELECT * FROM users WHERE email = ?");
-    $stmt->bind_param("s", $email);
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    if ($result->num_rows === 1) {
-        $admin = $result->fetch_assoc();
-
-        // Verify password
-       if (password_verify($password, $admin['password'])) {
-            $_SESSION['admin'] = $admin['email'];   // email stored for admin check
-            $_SESSION['user_id'] = $admin['id'];    // add user ID to session
-            $_SESSION['login_time'] = time();       // track login time
-
-            header("Location: http://localhost/project/yellow-diary/admin/dashboard.php");
-            exit();
+                header("Location: /project/yellow-diary/admin/dashboard.php");
+                exit();
+            } else {
+                echo "Incorrect password.";
+            }
+        } else {
+            echo "Admin not found or not authorized.";
         }
-        else {
-            echo "Incorrect password.";
-        }
-    } else {
-        echo "Admin not found.";
+
+        $stmt->close();
     }
-
-    $stmt->close();
-}
 } catch (Exception $e) {
-    echo "". $e->getMessage();
-    $conn->close();
+    echo "Error: " . $e->getMessage();
 }
 ?>

@@ -1,5 +1,5 @@
 <?php
-require_once 'database_connect.php';
+require_once 'includes/database_connect.php';
 
 try {
     $sql = "
@@ -23,7 +23,7 @@ try {
         $total_admins = $row['total_admins'];
         $total_generals = $row['total_generals'];
         $total_guests = $row['total_guests'];
-        $avg_time_spent = round($row['avg_time_spent'] / 120, 5); // hours
+        $avg_time_spent = round($row['avg_time_spent'] / 3600, 5); // hours
     } else {
         throw new Exception("Failed to fetch result row.");
     }

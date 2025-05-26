@@ -2,15 +2,16 @@
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
+session_start();
 try {
-  session_start();
+
 
   if (!isset($_SESSION['admin']) || !isset($_SESSION['user_id'])) {
       header("Location: http://localhost/project/yellow-diary/admin/admin.php");
       exit();
   }
 
-  require_once 'database_connect.php'; // make sure this creates $conn
+  require_once 'includes/database_connect.php'; // make sure this creates $conn
 
   $user_id = $_SESSION['user_id'];
   $_SESSION['login_time'] = $_SESSION['login_time'] ?? time(); // if not set yet, set now
@@ -20,7 +21,7 @@ try {
   $stmt->bind_param("i", $user_id);
   $stmt->execute();
 
-  include "admin_user_summary.php";
+  include "user_count.php";
 } catch (Exception $e){
   echo "". $e->getMessage() ."";
 } 
@@ -240,48 +241,9 @@ try {
 </head>
 <body>
   <div class="container">
-    <aside class="sidebar">
-      <div class="user-info">
-        <img src="https://via.placeholder.com/80" alt="User Avatar" />
-        <h2>User Account</h2>
-      </div>
-      <ul>
-        <li>
-          <button id="btnDashboard"><i class="fas fa-chart-pie"></i> Dashboard</button>
-        </li>
-        <li>
-          <button id="btnUser"><i class="fas fa-user"></i> User</button>
-        </li>
-        <li>
-          <button id="btnService"><i class="fas fa-database"></i> Service</button>
-        </li>
-        <li>
-          <button id="btnReport"><i class="fas fa-file-alt"></i> Report</button>
-        </li>
-        <li>
-          <button id="btnMap"><i class="fas fa-map"></i> Map</button>
-        </li>
-        <li>
-          <button id="btnCharts"><i class="fas fa-chart-line"></i> Charts</button>
-        </li>
-        <li>
-          <button id="btnSettings"><i class="fas fa-cog"></i> Settings</button>
-        </li>
-        <li>
-          <button id="btnLogout"><i class="fas fa-cog"></i> Logout</button>
-        </li>
-      </ul>
-    </aside>
-
+      <?php include 'includes/sidebar.php'; ?>
     <main class="main">
-      <div class="topbar">
-        <div class="logo">Dashboard</div>
-        <div class="actions">
-          <i class="fas fa-bell"></i>
-          <i class="fas fa-envelope"></i>
-          <i class="fas fa-user-circle"></i>
-        </div>
-      </div>
+      <?php include 'includes/header.php';?>
 
       <section class="dashboard" id="dashboardContent">
         <!-- Default cards content -->
