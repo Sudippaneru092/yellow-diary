@@ -1,56 +1,47 @@
 <?php
 session_start();
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+require 'database_connect.php';
 
-require_once 'database_connection.php';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = $_POST['email'] ?? '';
-    $password = $_POST['password'] ?? '';
-    $userType = $_POST['userType'] ?? '';
-
-    if (empty($email) || empty($password) || empty($userType)) {
-        exit("All fields are required.");
-    }
-
-    try {
-        $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ? AND user_type = ?");
-        $stmt->execute([$email, $userType]);
-        $user = $stmt->fetch();
-
-        if ($user && password_verify($password, $user['password'])) {
-            // Set session variables
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['full_name'] = $user['full_name'];
-            $_SESSION['user_type'] = $user['user_type'];
-
-            echo "Login successful!";
-
-            // Optional: redirect based on user type
-            /*
-            switch ($user['user_type']) {
-                case 'admin':
-                    header("Location: admin_dashboard.php");
-                    break;
-                case 'business':
-                    header("Location: business_dashboard.php");
-                    break;
-                case 'general':
-                    header("Location: index.php");
-                    break;
-            }
-            exit;
-            */
-        } else {
-            echo "Invalid email, password, or user type.";
-        }
-
-    } catch (PDOException $e) {
-        echo "Login failed: " . $e->getMessage();
-    }
-
-} else {
-    echo "Invalid request method.";
+// DB connection
+$conn = new mysqli("localhost", "root", "", "yellow_diary");
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
 }
+
+// Collect input
+$email = $_POST['email'];
+$password = $_POST['password'];
+$userType = $_POST['userType'];
+
+// Get user from DB
+$stmt = $conn->prepare("SELECT id, full_name, password, user_type FROM users WHERE email = ?");
+$stmt->bind_param("s", $email);
+$stmt->execute();
+$result = $stmt->get_result();
+
+if ($result->num_rows === 1) {
+    $user = $result->fetch_assoc();
+
+    if ($user['user_type'] !== $userType) {
+        die("Incorrect account type.");
+    }
+
+    if (password_verify($password, $user['password'])) {
+        // Login success
+        $_SESSION['user_id'] = $user['id'];
+        $_SESSION['user_name'] = $user['full_name'];
+        $_SESSION['user_type'] = $user['user_type'];
+
+        echo "Login successful!";
+        // Redirect by role
+        // header("Location: dashboard.php");
+    } else {
+        echo "Invalid password.";
+    }
+} else {
+    echo "User not found.";
+}
+$stmt->close();
+$conn->close();
 ?>

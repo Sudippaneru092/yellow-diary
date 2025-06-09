@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Yellow Diary</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="navbar">
+      <h1>Yellow Diary</h1>
+      <nav class="nav">
+        <a href="index.html">Home</a>
+        <a href="Srevices.html">Service</a>
+        <a href="About.html">About</a>
+        <a href="Login.html">Login/Signup</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-content">
+      <h1>Welcome to Yellow Diary</h1>
+      <p>Your go-to directory for local businesses in Nepal.</p>
+    </div>
+  </section>
+
+  <!-- Search -->
+  <form action="search.html" method="GET" id="searchForm">
+    <input type="text" name="query" placeholder="Search..." required />
+    <!-- Advanced search -->
+    <div id="advancedFields" style="display: none;">
+      <input type="text" name="keyword" placeholder="Search by keyword..." />
+    </div>
+    <button type="submit">Search</button>
+  </form>
+
+  <!-- Toggle Advanced Search -->
+  <div class="advanced-toggle" onclick="toggleAdvanced()">
+    <span class="icon">🔍</span>
+    <span>Advanced Search</span>
+  </div>
+
+  <!-- Categories -->
+  <div class="categories">
+    <div class="category active" data-category="all">All</div>
+    <div class="category" data-category="schools">Schools</div>
+    <div class="category" data-category="hospitals">Hospitals</div>
+    <div class="category" data-category="restaurants">Restaurants</div>
+    <div class="category" data-category="hotels">Hotels</div>
+    <div class="category" data-category="events">Events</div>
+    <div class="category" data-category="jobs">Job Vacancies</div>
+    <div class="category" data-category="announcements">Announcements</div>
+  </div>
+
+  <!-- Featured Businesses -->
+  <section class="features-business">
+    <h2>Featured Businesses </h2>
+    <div class="features-grid">
+      <a href="https://goo.gl/maps/S1TzGhn8tY3jMfyo6" target="_blank" class="feature" data-category="hospitals">
+        <img src="images/seti hospital" alt="Seti Hospital" />
+        <h3>Seti Provincial Hospital</h3>
+        <p><strong>Type:</strong> Hospital</p>
+        <p><strong>Location:</strong> Dhangadhi-2</p>
+        <p>Major government hospital for Sudurpashchim Province.</p>
+      </a>
+
+      <a href="https://goo.gl/maps/ijemEtDxEjF5FZuv6" target="_blank" class="feature" data-category="schools">
+        <img src="images/nast.jpg" alt="NAST College" />
+        <h3>NAST College</h3>
+        <p><strong>Type:</strong> School</p>
+        <p><strong>Location:</strong> Dhangadhi-4</p>
+        <p>One of the leading colleges in Dhangadhi.</p>
+      </a>
+
+      <a href="https://goo.gl/maps/pwCX5HRi4Zk4PZmA6" target="_blank" class="feature" data-category="restaurants">
+        <img src="images/salad.jpg" alt="Salad Kitchen" />
+        <h3>Salad Kitchen</h3>
+        <p><strong>Type:</strong> Restaurant</p>
+        <p><strong>Location:</strong> Dhangadhi-3</p>
+        <p>Fresh salads and healthy meals.</p>
+      </a>
+
+      <a href="https://goo.gl/maps/Mt8gNcBPqJvXw2PX8" target="_blank" class="feature" data-category="hotels">
+        <img src="images/hotel devotee.jpg" alt="Hotel Devotee" />
+        <h3>Hotel Devotee</h3>
+        <p><strong>Type:</strong> Hotel</p>
+        <p><strong>Location:</strong> Dhangadhi-5</p>
+        <p>Comfortable stay with great amenities.</p>
+      </a>
+    </div>
+  </section>
+
+  <script>
+    // Toggle advanced search fields
+    function toggleAdvanced() {
+      const adv = document.getElementById("advancedFields");
+      adv.style.display = adv.style.display === "none" ? "block" : "none";
+    }
+
+    // Category filter buttons
+    document.querySelectorAll(".categories .category").forEach((button) => {
+      button.addEventListener("click", () => {
+        const category = button.getAttribute("data-category");
+        filterBusinesses(category);
+
+        // Mark active button
+        document.querySelectorAll(".categories .category").forEach((btn) => btn.classList.remove("active"));
+        button.classList.add("active");
+      });
+    });
+
+    function filterBusinesses(category) {
+      const cards = document.querySelectorAll(".feature");
+      cards.forEach((card) => {
+        const cardCategory = card.getAttribute("data-category");
+        if (category === "all" || cardCategory === category) {
+          card.style.display = "block";
+        } else {
+          card.style.display = "none";
+        }
+      });
+    }
+
+    // Initial filter: show all
+    filterBusinesses("all");
+  </script>
+</body>
+</html>

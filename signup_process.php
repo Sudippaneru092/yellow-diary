@@ -1,75 +1,80 @@
 <?php
-// Enable error reporting for debugging
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+require 'database_connect.php';
+// DB connection (adjust these to match your setup)
+$conn = new mysqli("localhost", "root", "", "yellow_diary");
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
 
-// DB connection
-require_once 'database_connection.php'; // Contains $pdo = new PDO(...);
+// Collect form data
+$fullName = $_POST['fullName'];
+$email = $_POST['email'];
+$password = $_POST['password'];
+$confirmPassword = $_POST['confirmPassword'];
+$userType = $_POST['userType'];
 
-// Check if form was submitted
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Collect and sanitize form data
-    $fullName = $_POST['fullName'] ?? '';
-    $email = $_POST['email'] ?? '';
-    $password = $_POST['password'] ?? '';
-    $confirmPassword = $_POST['confirmPassword'] ?? '';
-    $userType = $_POST['userType'] ?? '';
+// Check if passwords match
+if ($password !== $confirmPassword) {
+    die("Passwords do not match.");
+}
 
-    // Validate basic inputs
-    if (empty($fullName) || empty($email) || empty($password) || empty($confirmPassword) || empty($userType)) {
-        exit("All required fields must be filled.");
-    }
+// Check if email already exists
+$stmt = $conn->prepare("SELECT id FROM users WHERE email = ?");
+$stmt->bind_param("s", $email);
+$stmt->execute();
+$stmt->store_result();
+if ($stmt->num_rows > 0) {
+    die("Email already registered.");
+}
+$stmt->close();
 
-    if ($password !== $confirmPassword) {
-        exit("Passwords do not match.");
-    }
+// Hash the password
+$hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
-    $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+// Handle optional business data
+$businessName = $businessDescription = $businessLocation = $businessCategory = $businessLogoPath = null;
 
-    try {
-        // Start DB transaction
-        $pdo->beginTransaction();
+if ($userType === "business") {
+    $businessName = $_POST['businessName'];
+    $businessDescription = $_POST['businessDescription'];
+    $businessLocation = $_POST['businessLocation'];
+    $businessCategory = $_POST['businessCategory'];
 
-        // Insert into users table
-        $stmt = $pdo->prepare("INSERT INTO users (full_name, email, password, user_type) VALUES (?, ?, ?, ?)");
-        $stmt->execute([$fullName, $email, $hashedPassword, $userType]);
-
-        // Get the inserted user ID
-        $userId = $pdo->lastInsertId();
-
-        // If business user, insert into business_profiles table
-        if ($userType === 'business') {
-            $businessName = $_POST['businessName'] ?? '';
-            $businessDescription = $_POST['businessDescription'] ?? '';
-            $businessLocation = $_POST['businessLocation'] ?? '';
-            $businessCategory = $_POST['businessCategory'] ?? '';
-
-            // Handle file upload
-            $logoFileName = null;
-            if (!empty($_FILES['businessLogo']['name']) && $_FILES['businessLogo']['error'] === 0) {
-                $uploadDir = 'uploads/';
-                if (!is_dir($uploadDir)) {
-                    mkdir($uploadDir, 0777, true);
-                }
-                $logoFileName = $uploadDir . time() . '_' . basename($_FILES['businessLogo']['name']);
-                move_uploaded_file($_FILES['businessLogo']['tmp_name'], $logoFileName);
-            }
-
-            $stmt = $pdo->prepare("INSERT INTO business_profiles (user_id, business_name, business_description, business_location, business_category, business_logo) 
-                                   VALUES (?, ?, ?, ?, ?, ?)");
-            $stmt->execute([$userId, $businessName, $businessDescription, $businessLocation, $businessCategory, $logoFileName]);
+    // Handle file upload
+    if (isset($_FILES['businessLogo']) && $_FILES['businessLogo']['error'] === UPLOAD_ERR_OK) {
+        $targetDir = "uploads/";
+        if (!is_dir($targetDir)) {
+            mkdir($targetDir, 0777, true);
         }
 
-        // Commit transaction
-        $pdo->commit();
-        echo "Signup successful!";
+        $fileName = basename($_FILES["businessLogo"]["name"]);
+        $targetFile = $targetDir . time() . "_" . $fileName;
 
-    } catch (PDOException $e) {
-        $pdo->rollBack();
-        echo "Signup failed: " . $e->getMessage();
+        $fileType = strtolower(pathinfo($targetFile, PATHINFO_EXTENSION));
+        $allowed = ['jpg', 'jpeg', 'png', 'gif'];
+
+        if (in_array($fileType, $allowed)) {
+            if (move_uploaded_file($_FILES["businessLogo"]["tmp_name"], $targetFile)) {
+                $businessLogoPath = $targetFile;
+            } else {
+                die("Error uploading file.");
+            }
+        } else {
+            die("Invalid file type.");
+        }
     }
-
-} else {
-    echo "Invalid request method.";
 }
+
+// Insert user into database
+$stmt = $conn->prepare("INSERT INTO users (full_name, email, password, user_type, business_name, business_description, business_location, business_category, business_logo) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+$stmt->bind_param("sssssssss", $fullName, $email, $hashedPassword, $userType, $businessName, $businessDescription, $businessLocation, $businessCategory, $businessLogoPath);
+
+if ($stmt->execute()) {
+    echo "Signup successful!";
+    // Redirect or display message
+} else {
+    echo "Error: " . $stmt->error;
+}
+$stmt->close();
+$conn->close();
 ?>

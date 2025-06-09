@@ -1,17 +1,14 @@
 <?php
-$host = 'localhost';
-$db   = 'yellow_diary'; // Your actual DB name
-$user = 'root';
-$pass = '';
-$charset = 'utf8mb4';
+$host = "localhost";
+$username = "root";
+$password = ""; // Leave blank for default XAMPP
+$database = "yellow_diary";
 
-$dsn = "mysql:host=$host;dbname=$db;charset=$charset";
+// Create connection
+$conn = new mysqli($host, $username, $password, $database);
 
-try {
-    $pdo = new PDO($dsn, $user, $pass);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (PDOException $e) {
-    die("DB Connection failed: " . $e->getMessage());
+// Check connection
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
 }
 ?>
-
