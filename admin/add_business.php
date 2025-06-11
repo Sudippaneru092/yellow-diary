@@ -94,10 +94,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <input type="text" name="name" id="name" class="form-control" value="<?= htmlspecialchars($name) ?>" required>
       </div>
 
-      <div class="form-group mb-3">
+    <div class="form-group mb-3">
         <label for="category">Category <span class="text-danger">*</span></label>
-        <input type="text" name="category" id="category" class="form-control" value="<?= htmlspecialchars($category) ?>" placeholder="e.g., Schools, Hospitals" required>
-      </div>
+        <select name="category" id="category" class="form-control" required>
+          <option value="">Select Category</option>
+          <?php
+          $categories = $conn->query("SELECT id, name FROM categories ORDER BY name");
+          while ($row = $categories->fetch_assoc()):
+          ?>
+            <option value="<?= htmlspecialchars($row['name']) ?>" <?= ($row['name'] == $category) ? 'selected' : '' ?>>
+              <?= htmlspecialchars($row['name']) ?>
+            </option>
+          <?php endwhile; ?>
+        </select>
+    </div>
+
 
       <div class="form-group mb-3">
         <label for="location">Location <span class="text-danger">*</span></label>

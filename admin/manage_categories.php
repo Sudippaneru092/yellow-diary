@@ -93,6 +93,7 @@ $result = $conn->query("SELECT * FROM categories ORDER BY id DESC");
               <td>
                 <a href="edit_category.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-primary">Edit</a>
                 <a href="manage_categories.php?delete=<?= $row['id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure to delete this category?');">Delete</a>
+                //Add a function to view all catagory related businesses
               </td>
             </tr>
           <?php endwhile; ?>

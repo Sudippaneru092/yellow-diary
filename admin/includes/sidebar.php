@@ -28,7 +28,7 @@
         </li>
 
         <li class="nav-item">
-     <a href="manage_business.php" class="nav-link">
+            <a href="manage_business.php" class="nav-link">
 
             <i class="nav-icon fas fa-building"></i>
             <p>Manage Businesses</p>
@@ -46,6 +46,12 @@
           <a href="manage_posts.php" class="nav-link">
             <i class="nav-icon fas fa-newspaper"></i>
             <p>Manage Posts</p>
+          </a>
+        </li>
+         <li class="nav-item">
+          <a href="manage_posts.php" class="nav-link">
+            <i class="nav-icon fas fa-newspaper"></i>
+            <p>Report</p>
           </a>
         </li>
 
