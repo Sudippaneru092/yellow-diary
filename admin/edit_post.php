@@ -18,10 +18,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $title = $_POST['title'];
   $category = $_POST['category'];
   $content = $_POST['content'];
+  $id = $_POST['id'];
 
-  $update = $conn->prepare("UPDATE posts SET title=?, category=?, content=? WHERE id=?");
+  $update = $conn->prepare("UPDATE posts SET title=?, category=?, description=? WHERE id=?");
+
+  if (!$update) {
+      die("Prepare failed: " . $conn->error);
+  }
+
   $update->bind_param("sssi", $title, $category, $content, $id);
+
   $update->execute();
+  if ($update->error) {
+      echo "No rows updated. Try changing the content to something new.";
+  }else{
+    header("Location: manage_posts.php");
+      exit;
+  }
+
+ 
+  $update->close();
 
   header("Location: manage_posts.php");
   exit;
@@ -35,6 +51,7 @@ include 'includes/sidebar.php';
   <section class="content-header"><h1>Edit Post</h1></section>
   <section class="content">
     <form method="POST">
+      <input type="hidden" name="id" value="<?php echo htmlspecialchars($_GET['id']); ?>">
       <div class="form-group">
         <label>Title</label>
         <input name="title" class="form-control" value="<?php echo htmlspecialchars($post['title']); ?>" required>
@@ -45,7 +62,7 @@ include 'includes/sidebar.php';
       </div>
       <div class="form-group">
         <label>Content</label>
-        <textarea name="content" class="form-control" rows="5"><?php echo htmlspecialchars($post['content']); ?></textarea>
+        <textarea name="content" class="form-control" rows="5"><?php echo htmlspecialchars($post['description']); ?></textarea>
       </div>
       <button type="submit" class="btn btn-primary">Update</button>
       <a href="manage_posts.php" class="btn btn-secondary">Cancel</a>
