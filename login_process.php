@@ -15,7 +15,7 @@ $password = $_POST['password'];
 $userType = $_POST['userType'];
 
 // Get user from DB
-$stmt = $conn->prepare("SELECT id, full_name, password, user_type FROM users WHERE email = ?");
+$stmt = $conn->prepare("SELECT * from users id, full_name, password, user_type FROM users WHERE email = ? ");
 $stmt->bind_param("s", $email);
 $stmt->execute();
 $result = $stmt->get_result();
