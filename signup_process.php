@@ -1,7 +1,7 @@
 <?php
-require 'database_connect.php';
+require 'admin/db.php';
 // DB connection (adjust these to match your setup)
-$conn = new mysqli("localhost", "root", "", "yellow_diary");
+$conn = new mysqli("localhost", "root", "", "yellow_diarys");
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }

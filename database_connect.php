@@ -2,7 +2,7 @@
 $host = "localhost";
 $username = "root";
 $password = ""; // Leave blank for default XAMPP
-$database = "yellow_diary";
+$database = "yellow_diarys";
 
 // Create connection
 $conn = new mysqli($host, $username, $password, $database);
