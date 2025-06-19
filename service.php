@@ -95,17 +95,7 @@
 </head>
 <body>
   <!-- Header -->
-  <header>
-    <div class="navbar">
-      <h1>Yellow Diary</h1>
-      <nav class="nav">
-        <a href="index.html">Home</a>
-        <a href="services.html">Service</a>
-        <a href="about.html">About</a>
-        <a href="login.html">Login/Signup</a>
-      </nav>
-    </div>
-  </header>
+  <?php include "header.html";?>
 
   <!-- Services Section -->
   <section class="services">

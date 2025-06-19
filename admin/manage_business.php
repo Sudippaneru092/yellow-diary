@@ -4,9 +4,10 @@ if (!isset($_SESSION['admin'])) {
     header('Location: login.php');
     exit;
 }
-include 'db.php';
-// Handle deletion
 
+include 'db.php';
+
+// Handle Deletion
 if (isset($_GET['delete_id'])) {
     $id = intval($_GET['delete_id']);
     $conn->query("DELETE FROM businesses WHERE id = $id");
@@ -15,11 +16,25 @@ if (isset($_GET['delete_id'])) {
     exit;
 }
 
+// Handle Approval or Rejection
+if (isset($_GET['action']) && isset($_GET['id'])) {
+    $id = intval($_GET['id']);
+    $action = $_GET['action'];
+
+    if ($action === 'approve') {
+        $conn->query("UPDATE businesses SET status = 'approved' WHERE id = $id");
+        $_SESSION['success'] = "Business approved successfully.";
+    } elseif ($action === 'reject') {
+        $conn->query("UPDATE businesses SET status = 'rejected' WHERE id = $id");
+        $_SESSION['success'] = "Business rejected successfully.";
+    }
+
+    header("Location: manage_business.php");
+    exit;
+}
 
 include 'includes/header.php';
 include 'includes/sidebar.php';
-
-
 ?>
 
 <div class="content-wrapper">
@@ -67,13 +82,21 @@ include 'includes/sidebar.php';
                 <td><?= htmlspecialchars($row['category']) ?></td>
                 <td><?= htmlspecialchars($row['location']) ?></td>
                 <td>
-                  <span class="badge badge-<?= $row['status'] == 'approved' ? 'success' : 'secondary' ?>">
+                  <span class="badge badge-<?= $row['status'] == 'approved' ? 'success' : ($row['status'] == 'rejected' ? 'danger' : 'secondary') ?>">
                     <?= ucfirst($row['status']) ?>
                   </span>
                 </td>
                 <td><?= $row['created_at'] ?></td>
                 <td>
                   <a href="edit_business.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-info">Edit</a>
+
+                  <?php if ($row['status'] === 'pending'): ?>
+                    <a href="manage_business.php?action=approve&id=<?= $row['id'] ?>" class="btn btn-success btn-sm" onclick="return confirm('Approve this business?')">Approve</a>
+                    <a href="manage_business.php?action=reject&id=<?= $row['id'] ?>" class="btn btn-danger btn-sm" onclick="return confirm('Reject this business?')">Reject</a>
+                  <?php else: ?>
+                    <span class="badge badge-info">Reviewed</span>
+                  <?php endif; ?>
+
                   <a href="?delete_id=<?= $row['id'] ?>" class="btn btn-sm btn-danger"
                      onclick="return confirm('Are you sure you want to delete this business?')">Delete</a>
                 </td>
