@@ -91,7 +91,7 @@ $postsResult = mysqli_query($conn, $postsQuery);
     </div>
 
     <!-- Advanced Search Form -->
-<form id="advancedSearchForm" action="search.php" method="GET" class="search-form advanced-search">
+<form id="advancedSearchForm" action="advanced_search.php" method="GET" class="search-form advanced-search">
       <input type="text" name="location" placeholder="City or Area" aria-label="Location">
       
       <select name="category" aria-label="Business category">
@@ -111,7 +111,10 @@ $postsResult = mysqli_query($conn, $postsQuery);
         <option value="10">10 km</option>
         <option value="25">25 km</option>
       </select>
-      
+        <!-- Hidden inputs to store browser location -->
+      <input type="hidden" name="lat" id="lat" value="">
+      <input type="hidden" name="lng" id="lng" value="">
+
       <button type="submit">Advanced Search</button>
     </form>
   </section>
@@ -222,6 +225,20 @@ $postsResult = mysqli_query($conn, $postsQuery);
     <a href="admin_login.php">Admin Login</a>
   </p>
 </footer>
+<script>
+// Get user location and fill hidden inputs
+if (navigator.geolocation) {
+  navigator.geolocation.getCurrentPosition(function(position) {
+    document.getElementById("lat").value = position.coords.latitude;
+    document.getElementById("lng").value = position.coords.longitude;
+  }, function(error) {
+    console.warn('Geolocation error:', error.message);
+    // User denied or error — lat/lng stay empty, radius search will not apply
+  });
+} else {
+  console.warn("Geolocation is not supported by this browser.");
+}
+</script>
 
 <!-- JavaScript -->
 <script>
