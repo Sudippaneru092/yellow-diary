@@ -167,10 +167,10 @@ include 'includes/sidebar.php';
       </div>
 
       <button type="submit" class="btn btn-primary">Add Business</button>
-    </form>
+  
   </section>
 </div>
-
+  </form>
 <script>
   // Load areas dynamically when city changes
   document.getElementById('city').addEventListener('change', function () {

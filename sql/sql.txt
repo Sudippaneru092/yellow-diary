@@ -53,3 +53,6 @@ CREATE TABLE category(
     description TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );  
+ALTER TABLE businesses
+ADD latitude DECIMAL(10,8),
+ADD longitude DECIMAL(11,8);

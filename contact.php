@@ -116,7 +116,7 @@
 <body>
 
   <!-- Header -->
-  <?php include "header.html";?>
+  <?php include "header.php";?>
 
   <!-- Contact Page Content -->
   <main class="contact-container">

@@ -87,7 +87,7 @@
 <body>
 
   <!-- Header -->
-  <?php include "header.html";?>
+  <?php include "header.php";?>
 
   
   <!-- About Content -->

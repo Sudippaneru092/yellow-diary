@@ -95,7 +95,7 @@
 </head>
 <body>
   <!-- Header -->
-  <?php include "header.html";?>
+  <?php include "header.php";?>
 
   <!-- Services Section -->
   <section class="services">
