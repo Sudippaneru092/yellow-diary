@@ -138,6 +138,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <label>Area*</label>
     <select name="area" id="area" required>
       <option value="">Select Area</option>
+                <?php
+               $areas = $conn->query("SELECT id, name FROM areas ORDER BY name");
+                while ($row = $areas->fetch_assoc()): ?>
+            <option value="<?= $row['id'] ?>" <?= ($row['id'] == $location) ? 'selected' : '' ?>>
+              <?= htmlspecialchars($row['name']) ?>
+            </option>
+          <?php endwhile; ?>
+          ?>
     </select><br>
 
     <label>Description</label>
