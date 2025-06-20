@@ -137,7 +137,19 @@ $postsResult = mysqli_query($conn, $postsQuery);
     <?php if(mysqli_num_rows($featuredResult) > 0): ?>
       <div class="features-grid">
         <?php while ($row = mysqli_fetch_assoc($featuredResult)): 
-          $imagePath = !empty($row['image']) ? 'yellow-diary/admin/' . $row['image'] : 'images/default.jpg';
+          $imagePath = !empty($row['image']) && file_exists('admin/' . $row['image']) 
+                       ? 'admin/' . $row['image'] 
+                       : 'images/default.jpg'; // Default image if not found
+          
+          // If image path is relative, prepend admin/uploads if necessary
+          if (strpos($row['image'], 'uploads/') === 0) {
+            $imagePath = 'admin/' . $row['image'];
+          }
+          
+        // Ensure image path is valid
+        if (!file_exists($imagePath)) {
+          $imagePath = 'images/default.jpg'; // Fallback image
+        } 
           $categoryClass = strtolower($row['category']);
         ?>
           <article class="feature-card" data-category="<?= $categoryClass ?>">
