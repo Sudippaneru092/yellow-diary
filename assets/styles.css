@@ -1,5 +1,4 @@
-
-  /* ===== Variables & Reset ===== */
+/* ===== Variables & Reset ===== */
 :root {
   --primary-color: #ffc107;
   --primary-dark: #e6ac00;
@@ -407,6 +406,7 @@ p {
   flex-grow: 1;
   display: -webkit-box;
   -webkit-line-clamp: 3;
+  line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
   position: relative;
@@ -789,6 +789,73 @@ p {
   font-size: 0.8rem;
   color: var(--text-muted);
 }
+/* ===== Post Categories Filter Buttons ===== */
+.post-categories {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+  margin: 1.5rem 0;
+}
+
+.post-category {
+  padding: 0.65rem 1.25rem;
+  background: #e0e0e0;
+  border-radius: 25px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  border: none;
+  box-shadow: var(--shadow-sm);
+}
+
+.post-category:hover {
+  background: #ffd54f;
+  color: #333;
+  transform: scale(1.05);
+}
+
+.post-category.active {
+  background: var(--primary-color);
+  color: var(--text-dark);
+  box-shadow: 0 6px 15px rgba(255, 193, 7, 0.7);
+  transform: scale(1.1);
+}
+
+/* Fix advanced search toggle reveal */
+#advancedSearchForm.show {
+  display: flex !important;
+  flex-wrap: wrap;
+}
+
+/* Improve small screen readability for post content */
+@media (max-width: 576px) {
+  .post-content h3 {
+    font-size: 1.1rem;
+  }
+
+  .post-meta {
+    flex-direction: column;
+    gap: 0.25rem;
+    align-items: flex-start;
+  }
+
+  .post-category {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.85rem;
+  }
+
+  .read-more {
+    display: block;
+    margin-top: 0.75rem;
+  }
+}
+
+/* Utility for ARIA visibility toggling */
+[aria-hidden="true"] {
+  display: none !important;
+}
+
 
 /* Pagination */
 .pagination {
@@ -960,4 +1027,3 @@ p {
     font-size: 1rem;
   }
 }
-  
