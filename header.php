@@ -5,6 +5,7 @@
     <nav class="nav">
       <a href="index.php">Home</a>
       <a href="service.php">Services</a>
+      <a href="about-us.php">About Us</a>
       <a href="submit_business.php">Submit Business</a>
       <?php if(isset($_SESSION['business_id'])): ?>
         <a href="submit_post.php">Submit Post</a>

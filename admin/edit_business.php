@@ -193,7 +193,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
       <div class="mb-3">
         <label for="areas" class="form-label">Area <span class="text-danger">*</span></label>
-        <select name="areas" id="areas" class="form-select" required>
+        <select name="areas" id="areas" class="form-select" >
           <option value="">Select Area</option>
           <!-- Will be populated dynamically -->
         </select>

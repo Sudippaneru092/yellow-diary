@@ -68,6 +68,140 @@ $result = $stmt->get_result();
   <meta charset="UTF-8" />
   <title>Search Results - Yellow Diary</title>
   <link rel="stylesheet" href="assets/css/styles.css">
+  <style>/* Reset and base */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f9f9f9;
+  color: #333;
+  line-height: 1.6;
+  padding: 20px;
+}
+
+/* Page title */
+h1 {
+  text-align: center;
+  margin-bottom: 30px;
+  color: #ffb600; /* Yellow Diary theme primary color */
+  font-weight: 700;
+  font-size: 2.5rem;
+}
+
+/* Grid container for cards */
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 25px;
+  max-width: 1200px;
+  margin: 0 auto 40px auto;
+}
+
+/* Card styles */
+.feature-card {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 3px 8px rgb(0 0 0 / 0.1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: box-shadow 0.3s ease;
+}
+
+.feature-card:hover {
+  box-shadow: 0 8px 20px rgb(0 0 0 / 0.15);
+}
+
+/* Image container */
+.card-image img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  display: block;
+}
+
+/* Card content */
+.card-content {
+  padding: 15px 20px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* Headings */
+.card-content h3 {
+  font-size: 1.4rem;
+  color: #222;
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+
+/* Info paragraphs */
+.card-content p {
+  font-size: 0.9rem;
+  margin-bottom: 6px;
+  color: #555;
+}
+
+/* Distance special style */
+.card-content p strong {
+  color: #ffb600;
+}
+
+/* Description snippet */
+.description {
+  margin-top: 10px;
+  font-style: italic;
+  color: #666;
+  flex-grow: 1;
+}
+
+/* Action buttons container */
+.card-actions {
+  margin-top: 15px;
+  display: flex;
+  gap: 10px;
+}
+
+/* Buttons */
+.btn {
+  flex: 1;
+  text-align: center;
+  background-color: #ffb600;
+  color: #fff;
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: 5px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: background-color 0.3s ease;
+  user-select: none;
+}
+
+.btn:hover,
+.btn:focus {
+  background-color: #e6a800;
+  outline: none;
+}
+
+/* Responsive tweaks */
+@media (max-width: 480px) {
+  body {
+    padding: 10px;
+  }
+  .card-image img {
+    height: 140px;
+  }
+  h1 {
+    font-size: 2rem;
+  }
+}
+</style>
 </head>
 <body>
 

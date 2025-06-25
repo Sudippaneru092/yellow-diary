@@ -8,7 +8,7 @@ include "admin/db.php";
 
 $errors = [];
 $success = false;
-
+$location = '';
 // Initial values
 $fields = [
   'name' => '',
@@ -43,7 +43,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (!in_array($_FILES['image']['type'], $allowedTypes)) {
       $errors[] = "Only JPG, PNG, and GIF images are allowed.";
     } else {
-      $uploadDir = "admin/uploads/business_images/";
+      $uploadDir = "yellow-diary/admin/uploads/business_images/";
       if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
       $imageName = time() . "_" . basename($_FILES["image"]["name"]);
       $targetFile = $uploadDir . $imageName;
@@ -58,12 +58,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   if (empty($errors)) {
     $location = $fields['city'] . ", " . $fields['area'];
     $slug = strtolower(preg_replace("/[^a-z0-9]+/", "-", $fields['name']));
-
+    
     $stmt = $conn->prepare("INSERT INTO businesses 
-      (name, category, location, description, image, url, created_at, slug, status, latitude, longitude)
-      VALUES (?, ?, ?, ?, ?, ?, NOW(), ?, 'pending', ?, ?)");
+      (name, category, location, description, image, url, created_at, slug, status)
+      VALUES (?, ?, ?, ?, ?, ?, NOW(), ?, 'pending')");
 
-    $stmt->bind_param("ssssssssdd",
+    $stmt->bind_param("sssssss",
       $fields['name'],
       $fields['category'],
       $location,
@@ -71,8 +71,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       $imagePath,
       $fields['url'],
       $slug,
-      $fields['latitude'],
-      $fields['longitude']
+      
     );
 
     if ($stmt->execute()) {
@@ -256,12 +255,12 @@ ul {
       <option value="">Select Area</option>
                 <?php
                $areas = $conn->query("SELECT id, name FROM areas ORDER BY name");
-                while ($row = $areas->fetch_assoc()): ?>
-            <option value="<?= $row['id'] ?>" <?= ($row['id'] == $location) ? 'selected' : '' ?>>
+                while ($row = $areas->fetch_assoc()){?>
+                <option value="<?= $row['id'] ?>" <?= ($row['id'] == $location) ? 'selected' : '' ?>>
               <?= htmlspecialchars($row['name']) ?>
             </option>
-          <?php endwhile; ?>
-          ?>
+          <?php } ?>
+        
     </select><br>
 
     <label>Description</label>
@@ -282,24 +281,6 @@ ul {
     <button type="submit">Submit</button>
   </form>
 
-<script>
-  document.getElementById('city').addEventListener('change', function () {
-    const cityName = this.value;
-    const areaSelect = document.getElementById('area');
-    areaSelect.innerHTML = '<option value="">Loading...</option>';
 
-    fetch('get_areas.php?city=' + encodeURIComponent(cityName))
-      .then(response => response.json())
-      .then(data => {
-        areaSelect.innerHTML = '<option value="">Select Area</option>';
-        data.forEach(area => {
-          const opt = document.createElement('option');
-          opt.value = area.name;
-          opt.textContent = area.name;
-          areaSelect.appendChild(opt);
-        });
-      });
-  });
-</script>
 </body>
 </html>
