@@ -210,23 +210,25 @@ ul {
 
 </head>
 <body>
-  <h2>Submit Your Business</h2>
+ <h2>Submit Your Business</h2>
 
   <?php if ($success): ?>
-    <div style="color: green;">Business submitted successfully. Pending approval.</div>
+    <div class="success">Business submitted successfully. Pending approval.</div>
   <?php endif; ?>
 
   <?php if (!empty($errors)): ?>
-    <ul style="color: red;">
-      <?php foreach ($errors as $error): ?>
-        <li><?= htmlspecialchars($error) ?></li>
-      <?php endforeach; ?>
-    </ul>
+    <div class="error">
+      <ul>
+        <?php foreach ($errors as $error): ?>
+          <li><?= htmlspecialchars($error) ?></li>
+        <?php endforeach; ?>
+      </ul>
+    </div>
   <?php endif; ?>
 
   <form method="POST" enctype="multipart/form-data">
     <label>Business Name*</label>
-    <input type="text" name="name" value="<?= htmlspecialchars($fields['name']) ?>" required><br>
+    <input type="text" name="name" value="<?= htmlspecialchars($fields['name']) ?>" required>
 
     <label>Category*</label>
     <select name="category" required>
@@ -237,50 +239,68 @@ ul {
       ?>
         <option value="<?= $row['name'] ?>" <?= $row['name'] == $fields['category'] ? 'selected' : '' ?>><?= $row['name'] ?></option>
       <?php endwhile; ?>
-    </select><br>
+    </select>
 
     <label>City*</label>
-    <select name="city" id="city" required>
+    <select name="city" id="citySelect" required>
       <option value="">Select City</option>
       <?php
         $cities = $conn->query("SELECT id, name FROM cities ORDER BY name");
         while ($row = $cities->fetch_assoc()):
       ?>
-        <option value="<?= $row['name'] ?>" <?= $row['name'] == $fields['city'] ? 'selected' : '' ?>><?= $row['name'] ?></option>
+        <option value="<?= $row['id'] ?>" <?= $row['name'] == $fields['city'] ? 'selected' : '' ?>><?= $row['name'] ?></option>
       <?php endwhile; ?>
-    </select><br>
+    </select>
 
     <label>Area*</label>
-    <select name="area" id="area" required>
+    <select name="area" id="areaSelect" required>
       <option value="">Select Area</option>
-                <?php
-               $areas = $conn->query("SELECT id, name FROM areas ORDER BY name");
-                while ($row = $areas->fetch_assoc()){?>
-                <option value="<?= $row['id'] ?>" <?= ($row['id'] == $location) ? 'selected' : '' ?>>
-              <?= htmlspecialchars($row['name']) ?>
-            </option>
-          <?php } ?>
-        
-    </select><br>
+    </select>
 
     <label>Description</label>
-    <textarea name="description"><?= htmlspecialchars($fields['description']) ?></textarea><br>
+    <textarea name="description"><?= htmlspecialchars($fields['description']) ?></textarea>
 
     <label>Website</label>
-    <input type="url" name="url" value="<?= htmlspecialchars($fields['url']) ?>"><br>
+    <input type="url" name="url" value="<?= htmlspecialchars($fields['url']) ?>">
 
     <label>Latitude</label>
-    <input type="text" name="latitude" value="<?= htmlspecialchars($fields['latitude']) ?>"><br>
+    <input type="text" name="latitude" value="<?= htmlspecialchars($fields['latitude']) ?>">
 
     <label>Longitude</label>
-    <input type="text" name="longitude" value="<?= htmlspecialchars($fields['longitude']) ?>"><br>
+    <input type="text" name="longitude" value="<?= htmlspecialchars($fields['longitude']) ?>">
 
     <label>Upload Image</label>
-    <input type="file" name="image" accept="image/*"><br><br>
+    <input type="file" name="image" accept="image/*">
 
     <button type="submit">Submit</button>
   </form>
 
+  <script>
+    document.getElementById('citySelect').addEventListener('change', function() {
+      const cityId = this.value;
+      const areaSelect = document.getElementById('areaSelect');
+      areaSelect.innerHTML = '<option value="">Loading...</option>';
 
+      fetch('get_areas.php?city_id=' + cityId)
+        .then(response => response.json())
+        .then(data => {
+          let options = '<option value="">Select Area</option>';
+          data.forEach(area => {
+            options += `<option value="${area.name}">${area.name}</option>`;
+          });
+          areaSelect.innerHTML = options;
+        })
+        .catch(err => {
+          areaSelect.innerHTML = '<option value="">Error loading areas</option>';
+          console.error(err);
+        });
+    });
+
+    window.addEventListener('DOMContentLoaded', function() {
+      if (document.getElementById('citySelect').value) {
+        document.getElementById('citySelect').dispatchEvent(new Event('change'));
+      }
+    });
+  </script>
 </body>
 </html>

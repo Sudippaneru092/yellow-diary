@@ -106,7 +106,7 @@ $postsResult = mysqli_query($conn, $postsQuery);
     <?php if(mysqli_num_rows($featuredResult) > 0): ?>
     <div class="features-grid">
       <?php while ($row = mysqli_fetch_assoc($featuredResult)):
-        $imagePath = !empty($row['image']) && file_exists('admin/' . $row['image']) ? 'admin/' . $row['image'] : 'images/default.jpg';
+        $imagePath = !empty($row['image']) && file_exists('yellow-diary/admin/' . $row['image']) ? 'admin/' . $row['image'] : 'images/default.jpg';
         if (strpos($row['image'], 'uploads/') === 0) {
           $imagePath = 'admin/' . $row['image'];
         }
