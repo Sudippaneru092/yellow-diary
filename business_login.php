@@ -100,6 +100,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="icon" href="images/favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" href="main.css" />
+
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -107,29 +112,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       margin: 0;
       padding: 0;
       color: #333;
-    }
-    .header {
-      background-color: #FFD700;
-      padding: 15px 0;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-    .navbar {
-      max-width: 1200px;
-      margin: 0 auto;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0 20px;
-    }
-    .nav a {
-      color: #333;
-      text-decoration: none;
-      margin-left: 20px;
-      font-weight: 500;
-    }
-    .nav a.active {
-      font-weight: bold;
-      text-decoration: underline;
     }
     .main-content {
       min-height: calc(100vh - 150px);

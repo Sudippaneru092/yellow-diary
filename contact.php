@@ -4,46 +4,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Contact Us - Yellow Diary</title>
-  <link rel="stylesheet" href="styles.css" />
+ 
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="icon" href="images/favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" href="main.css" />
+
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      background-color: #f9f9f9;
-      color: #333;
-    }
-
-    header {
-      background-color: #fdd835;
-      padding: 1rem;
-    }
-
-    .navbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    .navbar h1 {
-      margin: 0;
-    }
-
-    .nav a {
-      margin-left: 1rem;
-      text-decoration: none;
-      color: #333;
-      font-weight: bold;
-    }
-
-    .contact-container {
-      max-width: 1000px;
-      margin: 2rem auto;
-      padding: 2rem;
-      background-color: #fff;
-      box-shadow: 0 0 10px rgba(0,0,0,0.05);
-    }
-
+  
+    
     .contact-container h1 {
       text-align: center;
       margin-bottom: 2rem;

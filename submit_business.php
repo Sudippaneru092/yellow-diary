@@ -43,7 +43,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (!in_array($_FILES['image']['type'], $allowedTypes)) {
       $errors[] = "Only JPG, PNG, and GIF images are allowed.";
     } else {
-      $uploadDir = "yellow-diary/admin/uploads/business_images/";
+      $uploadDir = "admin/uploads/business_images/";
       if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
       $imageName = time() . "_" . basename($_FILES["image"]["name"]);
       $targetFile = $uploadDir . $imageName;
@@ -91,20 +91,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Submit Business</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="main.css">
   <style>
     /* Base Reset */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-}
-
-body {
-  font-family: 'Segoe UI', sans-serif;
-  background: #f8f9fa;
-  color: #333;
-  padding: 30px;
 }
 
 h2 {
@@ -210,6 +203,7 @@ ul {
 
 </head>
 <body>
+  <?php include "header.php"?>
  <h2>Submit Your Business</h2>
 
   <?php if ($success): ?>

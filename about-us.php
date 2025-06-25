@@ -9,6 +9,14 @@ include 'header.php';
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>About Us - Your Company Name</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="icon" href="images/favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" href="main.css" />
+
   <style>
     /* Container & Typography */
     .container {
@@ -19,12 +27,7 @@ include 'header.php';
       color: #222;
       line-height: 1.7;
     }
-    h1 {
-      font-size: 2.8rem;
-      margin-bottom: 0.25rem;
-      color: #ffc107; /* primary color */
-      text-align: center;
-    }
+
     .subtitle {
       text-align: center;
       font-size: 1.2rem;
