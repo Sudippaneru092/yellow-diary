@@ -14,6 +14,10 @@ $featuredResult = mysqli_query($conn, $featuredQuery);
 $categoriesQuery = "SELECT DISTINCT category FROM businesses WHERE status = 'approved'";
 $categoriesResult = mysqli_query($conn, $categoriesQuery);
 
+// Get distinct locations for businesses
+$locationsQuery = "SELECT DISTINCT location FROM businesses WHERE status = 'approved'";
+$locationsResult = mysqli_query($conn, $locationsQuery);
+
 // Get distinct categories for posts
 $postCategoriesQuery = "SELECT DISTINCT category FROM posts WHERE status = 'approved'";
 $postCategoriesResult = mysqli_query($conn, $postCategoriesQuery);
@@ -34,16 +38,12 @@ $postsResult = mysqli_query($conn, $postsQuery);
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Yellow Diary - Local Business Directory</title>
   
-
+  <link rel="stylesheet" href="index.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="icon" href="images/favicon.ico" type="image/x-icon">
-  <link rel="stylesheet" href="main.css" />
-
-
-  </style>
 </head>
 <body>
 
@@ -61,34 +61,73 @@ $postsResult = mysqli_query($conn, $postsQuery);
   <!-- Search Section -->
   <section class="search-container">
     <h2>🔍 Find a Business</h2>
-    <form action="search.php" method="GET" class="search-form basic-search">
-      <input type="text" name="query" placeholder="Search businesses..." required>
+    <form action="search_results.php" method="GET" class="search-form basic-search">
+      <input type="text" name="query" id="searchInput" placeholder="Search businesses, categories, locations..." required
+             list="searchSuggestions" autocomplete="off">
+      <datalist id="searchSuggestions">
+        <?php 
+        // Combine business names, categories, and locations for suggestions
+        $suggestionsQuery = "(SELECT name as suggestion FROM businesses WHERE status='approved' LIMIT 15)
+                            UNION
+                            (SELECT category as suggestion FROM businesses WHERE status='approved' LIMIT 15)
+                            UNION
+                            (SELECT location as suggestion FROM businesses WHERE status='approved' LIMIT 15)";
+        $suggestionsResult = mysqli_query($conn, $suggestionsQuery);
+        while($suggestion = mysqli_fetch_assoc($suggestionsResult)):
+        ?>
+          <option value="<?= htmlspecialchars($suggestion['suggestion']) ?>">
+        <?php endwhile; ?>
+      </datalist>
       <button type="submit">Search</button>
     </form>
 
     <div class="advanced-toggle">
-      <button type="button" onclick="tog()">⚙️ Advanced Search</button>
+      <button type="button" onclick="toggleAdvancedSearch()">⚙️ Advanced Search</button>
     </div>
 
-    <form id="advancedSearchForm" action="advanced_search.php" method="GET" class="search-form advanced-search">
-      <input type="text" name="location" placeholder="City or Area">
-      <select name="category">
-        <option value="">All Categories</option>
-        <?php mysqli_data_seek($categoriesResult, 0); while($cat = mysqli_fetch_assoc($categoriesResult)): ?>
-          <option value="<?= htmlspecialchars($cat['category']) ?>"><?= htmlspecialchars($cat['category']) ?></option>
-        <?php endwhile; ?>
-      </select>
-      <select name="radius">
-        <option value="">Nearby (km)</option>
-        <option value="1">1 km</option>
-        <option value="3">3 km</option>
-        <option value="5">5 km</option>
-        <option value="10">10 km</option>
-        <option value="25">25 km</option>
-      </select>
+    <form id="advancedSearchForm" action="search_results.php" method="GET" class="search-form advanced-search">
+      <div class="form-row">
+        <div class="form-group">
+          <input type="text" name="name" id="nameInput" placeholder="Business name">
+        </div>
+        
+        <div class="form-group">
+          <input type="text" name="category" id="categoryInput" placeholder="Category (e.g. 'Edu')" 
+                 list="categorySuggestions" autocomplete="off">
+          <datalist id="categorySuggestions">
+            <?php mysqli_data_seek($categoriesResult, 0); while($cat = mysqli_fetch_assoc($categoriesResult)): ?>
+              <option value="<?= htmlspecialchars($cat['category']) ?>">
+            <?php endwhile; ?>
+          </datalist>
+        </div>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <input type="text" name="location" id="locationInput" placeholder="Location" 
+                 list="locationSuggestions" autocomplete="off">
+          <datalist id="locationSuggestions">
+            <?php mysqli_data_seek($locationsResult, 0); while($loc = mysqli_fetch_assoc($locationsResult)): ?>
+              <option value="<?= htmlspecialchars($loc['location']) ?>">
+            <?php endwhile; ?>
+          </datalist>
+          <button type="button" id="useCurrentLocationBtn" class="location-btn">📍 Use My Location</button>
+        </div>
+        
+        <div class="form-group">
+          <select name="radius">
+            <option value="">Any distance</option>
+            <option value="1">Within 1 km</option>
+            <option value="3">Within 3 km</option>
+            <option value="5">Within 5 km</option>
+            <option value="10">Within 10 km</option>
+          </select>
+        </div>
+      </div>
+      
       <input type="hidden" name="lat" id="lat">
       <input type="hidden" name="lng" id="lng">
-      <button type="submit">Advanced Search</button>
+      <button type="submit" class="search-button">Advanced Search</button>
     </form>
   </section>
 
@@ -106,18 +145,12 @@ $postsResult = mysqli_query($conn, $postsQuery);
     <?php if(mysqli_num_rows($featuredResult) > 0): ?>
     <div class="features-grid">
       <?php while ($row = mysqli_fetch_assoc($featuredResult)):
-        $imagePath = !empty($row['image']) && file_exists('yellow-diary/admin/' . $row['image']) ? 'admin/' . $row['image'] : 'images/default.jpg';
-        if (strpos($row['image'], 'uploads/') === 0) {
-          $imagePath = 'admin/' . $row['image'];
-        }
-        if (!file_exists($imagePath)) {
-          $imagePath = 'images/default.jpg';
-        }
+        $imagePath = (!empty($row['image'])) ? $row['image'] : 'images/default.jpg';
         $categoryClass = strtolower($row['category']);
       ?>
         <article class="feature-card" data-category="<?= $categoryClass ?>">
           <div class="card-image">
-            <img src="<?= $imagePath ?>" alt="<?= htmlspecialchars($row['name']) ?>">
+            <img src="<?= $imagePath ?>" alt="<?= htmlspecialchars($row['name']) ?>" onerror="this.src='images/default.jpg'">
           </div>
           <div class="card-content">
             <h3><?= htmlspecialchars($row['name']) ?></h3>
@@ -158,12 +191,12 @@ $postsResult = mysqli_query($conn, $postsQuery);
       <div class="posts-grid">
         <?php if(mysqli_num_rows($postsResult) > 0): ?>
           <?php while($post = mysqli_fetch_assoc($postsResult)):
-            $postImage = !empty($post['image']) ? 'admin/uploads/posts/'.$post['image'] : 'images/default-post.jpg';
+            $postImage = !empty($post['image']) ? 'admin/uploads/posts/' . $post['image'] : 'images/default-post.jpg';
             $postCategoryClass = strtolower($post['category']);
           ?>
             <article class="post-card" data-category="<?= $postCategoryClass ?>">
               <div class="post-image">
-                <img src="<?= $postImage ?>" alt="<?= htmlspecialchars($post['title']) ?>">
+                <img src="<?= $postImage ?>" alt="<?= htmlspecialchars($post['title']) ?>" onerror="this.src='images/default-post.jpg'">
                 <div class="post-badge"><?= htmlspecialchars($post['category']) ?></div>
               </div>
               <div class="post-content">
@@ -202,28 +235,50 @@ $postsResult = mysqli_query($conn, $postsQuery);
 </footer>
 
 <script>
+// Geolocation for advanced search
 if (navigator.geolocation) {
-  navigator.geolocation.getCurrentPosition(function(position) {
-    document.getElementById("lat").value = position.coords.latitude;
-    document.getElementById("lng").value = position.coords.longitude;
+  document.getElementById('useCurrentLocationBtn').addEventListener('click', function() {
+    navigator.geolocation.getCurrentPosition(function(position) {
+      document.getElementById('lat').value = position.coords.latitude;
+      document.getElementById('lng').value = position.coords.longitude;
+      document.getElementById('locationInput').value = "Near Me";
+    }, function(error) {
+      alert("Could not get your location. Please enable location services.");
+    });
   });
 }
-function tog() {
+
+// Toggle advanced search
+function toggleAdvancedSearch() {
   const advForm = document.getElementById("advancedSearchForm");
   advForm.classList.toggle("show");
+  const btn = document.querySelector('.advanced-toggle button');
+  if (advForm.classList.contains('show')) {
+    btn.textContent = '⚙️ Hide Advanced';
+  } else {
+    btn.textContent = '⚙️ Advanced Search';
+  }
 }
 
-// Filter businesses
+// Live search suggestions
+document.getElementById('searchInput').addEventListener('input', function() {
+  const input = this.value.trim();
+  if (input.length > 1) {
+    // In a real implementation, you would make an AJAX call here
+    // to get dynamic suggestions based on the input
+    console.log("Fetching suggestions for:", input);
+  }
+});
+
+// Filter businesses by category
 document.querySelector('.categories').addEventListener('click', (e) => {
   if (e.target.classList.contains('category')) {
     const category = e.target.getAttribute('data-category');
     filterBusinesses(category);
     document.querySelectorAll('.categories .category').forEach(btn => {
       btn.classList.remove('active');
-      btn.setAttribute('aria-selected', 'false');
     });
     e.target.classList.add('active');
-    e.target.setAttribute('aria-selected', 'true');
   }
 });
 
@@ -234,17 +289,15 @@ function filterBusinesses(category) {
   });
 }
 
-// Filter posts
+// Filter posts by category
 document.querySelector('.post-categories').addEventListener('click', (e) => {
   if (e.target.classList.contains('post-category')) {
     const category = e.target.getAttribute('data-category');
     filterPosts(category);
     document.querySelectorAll('.post-categories .post-category').forEach(btn => {
       btn.classList.remove('active');
-      btn.setAttribute('aria-selected', 'false');
     });
     e.target.classList.add('active');
-    e.target.setAttribute('aria-selected', 'true');
   }
 });
 
@@ -255,6 +308,7 @@ function filterPosts(category) {
   });
 }
 
+// Initialize filters on page load
 document.addEventListener('DOMContentLoaded', () => {
   filterBusinesses("all");
   filterPosts("all");

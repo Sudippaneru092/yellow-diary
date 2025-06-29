@@ -11,7 +11,7 @@ if (!isset($_GET['city_id']) || !is_numeric($_GET['city_id'])) {
 $city_id = (int)$_GET['city_id'];
 
 // Prepare and execute query to fetch areas for the city
-$stmt = $conn->prepare("SELECT id, name FROM area WHERE city_id = ? ORDER BY name");
+$stmt = $conn->prepare("SELECT id, name FROM areas WHERE city_id = ? ORDER BY name");
 $stmt->bind_param("i", $city_id);
 $stmt->execute();
 $result = $stmt->get_result();

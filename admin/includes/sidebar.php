@@ -43,14 +43,7 @@ $reports_active = in_array($current_page, $reports_pages) ? 'active' : '';
           </a>
         </li>
 
-        <!-- Manage Users -->
-        <li class="nav-item">
-          <a href="manage_users.php" class="nav-link <?= isActive('manage_users.php', $current_page) ?>">
-            <i class="nav-icon fas fa-users"></i>
-            <p>Manage Users</p>
-          </a>
-        </li>
-
+    
         <!-- Manage Businesses -->
         <li class="nav-item">
           <a href="manage_business.php" class="nav-link <?= isActive('manage_business.php', $current_page) ?>">
@@ -107,19 +100,10 @@ $reports_active = in_array($current_page, $reports_pages) ? 'active' : '';
                 <p>Business Report</p>
               </a>
             </li>
-            <li class="nav-item">
-              <a href="user-reports.php" class="nav-link <?= isActive('user-reports.php', $current_page) ?>">
-                <i class="far fa-circle nav-icon text-primary"></i>
-                <p>User Report</p>
-              </a>
+         
             </li>
-            <li class="nav-item">
-              <a href="category-reports.php" class="nav-link <?= isActive('category-reports.php', $current_page) ?>">
-                <i class="far fa-circle nav-icon text-danger"></i>
-                <p>Category Report</p>
-              </a>
-            </li>
-            <li class="nav-item">
+         
+        <!--    <li class="nav-item">
               <a href="post-reports.php" class="nav-link <?= isActive('post-reports.php', $current_page) ?>">
                 <i class="far fa-circle nav-icon text-secondary"></i>
                 <p>Post Report</p>
@@ -127,6 +111,7 @@ $reports_active = in_array($current_page, $reports_pages) ? 'active' : '';
             </li>
           </ul>
         </li>
+-->
 
         <!-- Logout -->
         <li class="nav-item mt-auto">

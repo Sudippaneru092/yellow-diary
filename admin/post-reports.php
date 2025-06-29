@@ -1,5 +1,6 @@
 <?php
 include 'db.php';
+include 'includes/sidebar.php';
 
 // Pagination settings
 $limit = 10;
@@ -99,6 +100,7 @@ if (isset($_GET['export'])) {
 </style>
 </head>
 <body>
+  
 
 <div class="container">
   <h2 class="mb-4 text-primary">Post Reports</h2>

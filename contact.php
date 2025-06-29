@@ -1,153 +1,174 @@
+<?php
+session_start();
+include "admin/db.php";
+
+$errors = [];
+$success = false;
+
+// Handle form submit
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $name = trim($_POST['name'] ?? '');
+    $email = trim($_POST['email'] ?? '');
+    $subject = trim($_POST['subject'] ?? '');
+    $message = trim($_POST['message'] ?? '');
+
+    // Validate inputs
+    if (!$name) $errors[] = "Name is required.";
+    if (!$email || !filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = "Valid email is required.";
+    if (!$subject) $errors[] = "Subject is required.";
+    if (!$message) $errors[] = "Message is required.";
+
+    if (empty($errors)) {
+        // You can add here code to save to DB or send email
+        // For example: mail(...) or insert into contact_messages table
+
+        $success = "Thank you for contacting us! We will get back to you shortly.";
+        // Clear form values
+        $_POST = [];
+    }
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Contact Us - Yellow Diary</title>
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="main.css" />
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      background-color: #f9f9f9;
-      color: #333;
-    }
-
-    header {
-      background-color: #fdd835;
-      padding: 1rem;
-    }
-
-    .navbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    .navbar h1 {
-      margin: 0;
-    }
-
-    .nav a {
-      margin-left: 1rem;
-      text-decoration: none;
-      color: #333;
-      font-weight: bold;
-    }
-
+    /* Contact Us Page Styling */
     .contact-container {
-      max-width: 1000px;
-      margin: 2rem auto;
+      max-width: 600px;
+      margin: 3rem auto;
       padding: 2rem;
-      background-color: #fff;
-      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      animation: fadeIn 0.3s ease-in-out;
     }
-
     .contact-container h1 {
       text-align: center;
-      margin-bottom: 2rem;
+      color: var(--primary-color, #ffc107);
+      margin-bottom: 1.5rem;
+      font-weight: 700;
     }
-
-    .contact-details, .contact-form {
-      margin-bottom: 2rem;
-    }
-
-    .contact-details p {
-      line-height: 1.6;
-      color: #555;
-    }
-
-    .contact-form form {
+    form.contact-form {
       display: flex;
       flex-direction: column;
+      gap: 1.2rem;
     }
-
-    .contact-form input, .contact-form textarea {
-      padding: 0.8rem;
-      margin-bottom: 1rem;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      font-size: 1rem;
-    }
-
-    .contact-form button {
-      background-color: #fdd835;
+    label {
+      font-weight: 600;
       color: #333;
-      padding: 0.8rem;
-      border: none;
-      border-radius: 4px;
-      font-size: 1rem;
-      font-weight: bold;
-      cursor: pointer;
     }
-
-    .contact-form button:hover {
-      background-color: #fbc02d;
-    }
-
-    .map {
+    input[type="text"], input[type="email"], textarea {
       width: 100%;
-      height: 300px;
-      margin-top: 2rem;
-      border: 0;
+      padding: 0.9rem 1rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background: #f9f9f9;
+      transition: border-color 0.3s ease;
     }
-
-    footer {
-      background-color: #333;
-      color: #fff;
-      text-align: center;
+    input[type="text"]:focus, input[type="email"]:focus, textarea:focus {
+      border-color: var(--primary-color, #ffc107);
+      background: #fff;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.2);
+    }
+    textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+    button[type="submit"] {
+      background: var(--primary-color, #ffc107);
+      color: #222;
+      border: none;
+      padding: 0.9rem;
+      font-weight: 700;
+      font-size: 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+    button[type="submit"]:hover {
+      background: var(--primary-dark, #e0a800);
+      transform: translateY(-2px);
+    }
+    .alert-success, .alert-error {
+      max-width: 600px;
+      margin: 0 auto 1.5rem;
       padding: 1rem;
-      margin-top: 2rem;
+      border-radius: 8px;
+      font-weight: 600;
+    }
+    .alert-success {
+      background: #d4edda;
+      border: 1px solid #c3e6cb;
+      color: #155724;
+    }
+    .alert-error {
+      background: #f8d7da;
+      border: 1px solid #f5c6cb;
+      color: #721c24;
+    }
+    .alert-error ul {
+      margin-left: 1.5rem;
+      list-style: disc;
     }
 
-    @media (max-width: 600px) {
-      .navbar, .nav {
-        flex-direction: column;
-        align-items: center;
+    /* Responsive */
+    @media (max-width: 640px) {
+      .contact-container {
+        margin: 2rem 1rem;
+        padding: 1.5rem;
       }
-
-      .nav a {
-        margin: 0.5rem 0;
+      button[type="submit"] {
+        font-size: 0.95rem;
       }
     }
   </style>
 </head>
 <body>
 
-  <!-- Header -->
-  <?php include "header.php";?>
+<?php include "header.php"; ?>
 
-  <!-- Contact Page Content -->
-  <main class="contact-container">
-    <h1>Contact Us</h1>
+<div class="contact-container">
+  <h1>Contact Us</h1>
 
-    <div class="contact-details">
-      <p><strong>Email:</strong> support@yellowdiary.com</p>
-      <p><strong>Phone:</strong> +977-9800000000</p>
-      <p><strong>Address:</strong> Dhangadhi, Kailali, Nepal</p>
-      <p>Feel free to contact us for business listings, partnerships, or feedback. We’re happy to hear from you!</p>
+  <?php if ($success): ?>
+    <div class="alert-success"><?= htmlspecialchars($success) ?></div>
+  <?php endif; ?>
+
+  <?php if (!empty($errors)): ?>
+    <div class="alert-error">
+      <ul>
+        <?php foreach ($errors as $error): ?>
+          <li><?= htmlspecialchars($error) ?></li>
+        <?php endforeach; ?>
+      </ul>
     </div>
+  <?php endif; ?>
 
-    <div class="contact-form">
-      <form action="#" method="POST">
-        <input type="text" name="name" placeholder="Your Name" required />
-        <input type="email" name="email" placeholder="Your Email" required />
-        <textarea name="message" rows="5" placeholder="Your Message" required></textarea>
-        <button type="submit">Send Message</button>
-      </form>
-    </div>
+  <form class="contact-form" method="POST" action="">
+    <label for="name">Name*</label>
+    <input type="text" id="name" name="name" required value="<?= htmlspecialchars($_POST['name'] ?? '') ?>" />
 
-    <!-- Optional Google Map -->
-    <iframe class="map"
-      src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d28264.50978307976!2d80.57456885!3d28.70546035!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3997b51bbf247369%3A0xc1b9b61a2b15305d!2sDhangadhi!5e0!3m2!1sen!2snp!4v1681904440914"
-      allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-  </main>
+    <label for="email">Email*</label>
+    <input type="email" id="email" name="email" required value="<?= htmlspecialchars($_POST['email'] ?? '') ?>" />
 
-  <!-- Footer -->
-  <footer>
-    &copy; 2025 Yellow Diary. All rights reserved.
-  </footer>
+    <label for="subject">Subject*</label>
+    <input type="text" id="subject" name="subject" required value="<?= htmlspecialchars($_POST['subject'] ?? '') ?>" />
+
+    <label for="message">Message*</label>
+    <textarea id="message" name="message" required><?= htmlspecialchars($_POST['message'] ?? '') ?></textarea>
+
+    <button type="submit">Send Message</button>
+  </form>
+</div>
+
+<?php include "footer.php"; ?>
 
 </body>
 </html>

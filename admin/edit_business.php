@@ -1,7 +1,6 @@
 <?php
-// edit_business.php
+ob_start();
 ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 session_start();
@@ -10,8 +9,6 @@ if (!isset($_SESSION['admin'])) {
     exit;
 }
 
-include 'includes/header.php';
-include 'includes/sidebar.php';
 include 'db.php';
 
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
@@ -22,35 +19,27 @@ if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
 
 $businessId = (int)$_GET['id'];
 
-// Initialize variables
-$name = $category = $location = $areas = $description = $url = "";
-$imagePath = "";
-$errors = [];
-
-// Fetch existing business data
+// Fetch business
 $stmt = $conn->prepare("SELECT * FROM businesses WHERE id = ?");
 $stmt->bind_param("i", $businessId);
 $stmt->execute();
 $result = $stmt->get_result();
-
 if ($result->num_rows === 0) {
     $_SESSION['error'] = "Business not found.";
     header("Location: manage_business.php");
     exit;
 }
-
 $business = $result->fetch_assoc();
 $stmt->close();
 
-// Parse location into city and area if possible (location stored as "City, Area")
+// Parse location
+$cityName = $areaName = "";
 if (strpos($business['location'], ',') !== false) {
     list($cityName, $areaName) = array_map('trim', explode(',', $business['location'], 2));
 } else {
-    $cityName = $business['location'];
-    $areaName = "";
+    $cityName = trim($business['location']);
 }
 
-// To get city id from cityName, fetch from cities table
 $cityId = null;
 $stmtCityId = $conn->prepare("SELECT id FROM cities WHERE name = ?");
 $stmtCityId->bind_param("s", $cityName);
@@ -61,33 +50,32 @@ if ($rowCityId = $resCityId->fetch_assoc()) {
 }
 $stmtCityId->close();
 
-// Initialize form variables with existing data (will be overridden if POST)
+// Initialize form fields
 $name = $business['name'];
 $category = $business['category'];
 $location = $cityId;
 $areas = $areaName;
 $description = $business['description'];
 $url = $business['url'];
-$imagePath = $business['image'];  // Existing image path
+$imagePath = $business['image'];
+$errors = [];
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $name = trim($_POST['name']);
     $category = trim($_POST['category']);
-    $location = trim($_POST['location']); // city id
-    $areas = trim($_POST['areas']);       // area name
+    $location = trim($_POST['location']);
+    $areas = trim($_POST['areas']);
     $description = trim($_POST['description']);
     $url = trim($_POST['url']);
 
-    if (empty($name)) $errors[] = "Business name is required.";
-    if (empty($category)) $errors[] = "Category is required.";
-    if (empty($location)) $errors[] = "City is required.";
-    if (empty($areas)) $errors[] = "Area is required.";
-
-    if (!empty($url) && !filter_var($url, FILTER_VALIDATE_URL)) {
-        $errors[] = "Invalid URL format.";
+    if (!$name) $errors[] = "Business name is required.";
+    if (!$category) $errors[] = "Category is required.";
+    if (!$location) $errors[] = "City is required.";
+    if (!$areas) $errors[] = "Area is required.";
+    if ($url && !filter_var($url, FILTER_VALIDATE_URL)) {
+        $errors[] = "Invalid website URL.";
     }
 
-    // Handle image upload if a new image is selected
     if (isset($_FILES['image']) && $_FILES['image']['error'] !== UPLOAD_ERR_NO_FILE) {
         $allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
         if (!in_array($_FILES['image']['type'], $allowedTypes)) {
@@ -99,7 +87,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $targetFile = $uploadDir . $imageName;
 
             if (move_uploaded_file($_FILES["image"]["tmp_name"], $targetFile)) {
-                // Optionally delete old image if exists and different from new
                 if (!empty($imagePath) && file_exists($imagePath) && $imagePath != $targetFile) {
                     unlink($imagePath);
                 }
@@ -111,7 +98,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     if (empty($errors)) {
-        // Get city name from city id
+        // Get city name from ID
         $stmtCity = $conn->prepare("SELECT name FROM cities WHERE id = ?");
         $stmtCity->bind_param("i", $location);
         $stmtCity->execute();
@@ -121,7 +108,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         $fullLocation = $cityName . ", " . $areas;
 
-        // Update query (status unchanged)
         $stmtUpdate = $conn->prepare("UPDATE businesses SET name = ?, category = ?, location = ?, description = ?, image = ?, url = ? WHERE id = ?");
         $stmtUpdate->bind_param("ssssssi", $name, $category, $fullLocation, $description, $imagePath, $url, $businessId);
 
@@ -135,6 +121,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmtUpdate->close();
     }
 }
+
+include 'includes/header.php';
+include 'includes/sidebar.php';
 ?>
 
 <div class="content-wrapper">
@@ -147,17 +136,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
   <section class="content container-fluid">
     <?php if (!empty($errors)): ?>
-      <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <div class="alert alert-danger">
         <ul class="mb-0">
           <?php foreach ($errors as $error): ?>
             <li><?= htmlspecialchars($error) ?></li>
           <?php endforeach; ?>
         </ul>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
       </div>
     <?php endif; ?>
 
-    <form action="" method="POST" enctype="multipart/form-data" novalidate>
+    <form method="POST" enctype="multipart/form-data">
       <div class="mb-3">
         <label for="name" class="form-label">Business Name <span class="text-danger">*</span></label>
         <input type="text" name="name" id="name" class="form-control" value="<?= htmlspecialchars($name) ?>" required>
@@ -169,8 +157,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
           <option value="">Select Category</option>
           <?php
           $categories = $conn->query("SELECT name FROM category ORDER BY name");
-          while ($row = $categories->fetch_assoc()): ?>
-            <option value="<?= htmlspecialchars($row['name']) ?>" <?= ($row['name'] == $category) ? 'selected' : '' ?>>
+          while ($row = $categories->fetch_assoc()):
+              $isSelected = (trim(strtolower($row['name'])) == trim(strtolower($category))) ? 'selected' : '';
+          ?>
+            <option value="<?= htmlspecialchars($row['name']) ?>" <?= $isSelected ?>>
               <?= htmlspecialchars($row['name']) ?>
             </option>
           <?php endwhile; ?>
@@ -183,19 +173,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
           <option value="">Select City</option>
           <?php
           $cities = $conn->query("SELECT id, name FROM cities ORDER BY name");
-          while ($row = $cities->fetch_assoc()): ?>
-            <option value="<?= $row['id'] ?>" <?= ($row['id'] == $location) ? 'selected' : '' ?>>
-              <?= htmlspecialchars($row['name']) ?>
-            </option>
+          while ($row = $cities->fetch_assoc()):
+              $selected = ($row['id'] == $location) ? 'selected' : '';
+          ?>
+            <option value="<?= $row['id'] ?>" <?= $selected ?>><?= htmlspecialchars($row['name']) ?></option>
           <?php endwhile; ?>
         </select>
       </div>
 
       <div class="mb-3">
         <label for="areas" class="form-label">Area <span class="text-danger">*</span></label>
-        <select name="areas" id="areas" class="form-select" >
+        <select name="areas" id="areas" class="form-select">
           <option value="">Select Area</option>
-          <!-- Will be populated dynamically -->
         </select>
       </div>
 
@@ -213,7 +202,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <label for="image" class="form-label">Upload Image</label>
         <?php if (!empty($imagePath) && file_exists($imagePath)): ?>
           <div class="mb-2">
-            <img src="<?= htmlspecialchars($imagePath) ?>" alt="Business Image" style="max-width: 200px; max-height: 150px; object-fit: contain;">
+            <img src="<?= htmlspecialchars($imagePath) ?>" alt="Business Image" style="max-width: 200px; object-fit: contain;">
           </div>
         <?php endif; ?>
         <input type="file" name="image" id="image" class="form-control" accept="image/*">
@@ -226,46 +215,41 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </div>
 
 <script>
-  // Load areas dynamically when city changes
-  document.getElementById('city').addEventListener('change', function () {
-    const cityId = this.value;
-    const areaSelect = document.getElementById('areas');
+document.addEventListener('DOMContentLoaded', function () {
+  const citySelect = document.getElementById('city');
+  const areaSelect = document.getElementById('areas');
+  const selectedArea = "<?= addslashes($areas) ?>";
+
+  function loadAreas(cityId) {
     areaSelect.innerHTML = '<option value="">Loading...</option>';
-
-    if (cityId) {
-      fetch('get_areas.php?city_id=' + cityId)
-        .then(response => response.json())
-        .then(data => {
-          areaSelect.innerHTML = '<option value="">Select Area</option>';
-          data.forEach(area => {
-            const option = document.createElement('option');
-            option.value = area.name;  // assuming get_areas.php returns array of {id, name}
-            option.textContent = area.name;
-            areaSelect.appendChild(option);
-          });
-
-          // If previously selected area exists, reselect it
-          const selectedArea = "<?= addslashes($areas) ?>";
-          if(selectedArea) {
-            areaSelect.value = selectedArea;
-          }
-        })
-        .catch(err => {
-          areaSelect.innerHTML = '<option value="">Failed to load areas</option>';
-          console.error(err);
+    fetch('get_areas.php?city_id=' + cityId)
+      .then(res => res.json())
+      .then(data => {
+        let options = '<option value="">Select Area</option>';
+        data.forEach(area => {
+          const isSelected = area.name.trim().toLowerCase() === selectedArea.trim().toLowerCase() ? 'selected' : '';
+          options += `<option value="${area.name}" ${isSelected}>${area.name}</option>`;
         });
+        areaSelect.innerHTML = options;
+      })
+      .catch(() => {
+        areaSelect.innerHTML = '<option value="">Error loading areas</option>';
+      });
+  }
+
+  if (citySelect.value) {
+    loadAreas(citySelect.value);
+  }
+
+  citySelect.addEventListener('change', function () {
+    if (this.value) {
+      loadAreas(this.value);
     } else {
       areaSelect.innerHTML = '<option value="">Select Area</option>';
     }
   });
-
-  // Pre-load areas if city was already selected (e.g. on page load)
-  window.addEventListener('DOMContentLoaded', () => {
-    const citySelect = document.getElementById('city');
-    if (citySelect.value) {
-      citySelect.dispatchEvent(new Event('change'));
-    }
-  });
+});
 </script>
 
 <?php include 'includes/footer.php'; ?>
+<?php ob_end_flush(); ?>
