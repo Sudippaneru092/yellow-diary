@@ -24,10 +24,16 @@ $fields = [
   'longitude' => ''
 ];
 
+$password = '';
+$confirmPassword = '';
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
   foreach ($fields as $key => $val) {
     $fields[$key] = trim($_POST[$key] ?? '');
   }
+
+  $password = trim($_POST['password'] ?? '');
+  $confirmPassword = trim($_POST['confirm_password'] ?? '');
 
   if (empty($fields['name'])) $errors[] = "Business name is required.";
   if (empty($fields['category'])) $errors[] = "Category is required.";
@@ -39,6 +45,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   }
   if (!empty($fields['url']) && !filter_var($fields['url'], FILTER_VALIDATE_URL)) {
     $errors[] = "Invalid URL format.";
+  }
+
+  if (empty($password) || empty($confirmPassword)) {
+    $errors[] = "Password and Confirm Password are required.";
+  } elseif ($password !== $confirmPassword) {
+    $errors[] = "Passwords do not match.";
+  } elseif (strlen($password) < 6) {
+    $errors[] = "Password must be at least 6 characters long.";
   }
 
   // Handle image upload
@@ -53,7 +67,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       $imageName = time() . "_" . basename($_FILES["image"]["name"]);
       $targetFile = $uploadDir . $imageName;
       if (move_uploaded_file($_FILES["image"]["tmp_name"], $targetFile)) {
-        $imagePath = "uploads/business_images/".$imageName;
+        $imagePath = "uploads/business_images/" . $imageName;
       } else {
         $errors[] = "Failed to upload image.";
       }
@@ -63,6 +77,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   if (empty($errors)) {
     $location = $fields['city'] . ", " . $fields['area'];
     $slug = strtolower(preg_replace("/[^a-z0-9]+/", "-", $fields['name']));
+    $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
     $checkStmt = $conn->prepare("SELECT id FROM businesses WHERE name = ? AND location = ?");
     $checkStmt->bind_param("ss", $fields['name'], $location);
@@ -73,10 +88,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       $exists = true;
     } else {
       $stmt = $conn->prepare("INSERT INTO businesses 
-        (name, category, location, description, image, url, email, phone, latitude, longitude, created_at, slug, status)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, 'pending')");
+        (name, category, location, description, image, url, email, phone, latitude, longitude, created_at, slug, status, password)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, 'pending', ?)");
 
-      $stmt->bind_param("sssssssssss",
+      $stmt->bind_param("ssssssssssss", 
         $fields['name'],
         $fields['category'],
         $location,
@@ -87,12 +102,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $fields['phone'],
         $fields['latitude'],
         $fields['longitude'],
-        $slug
+        $slug,
+        $hashedPassword
       );
 
       if ($stmt->execute()) {
         $success = true;
         $fields = array_map(fn() => '', $fields);
+        $password = $confirmPassword = '';
       } else {
         $errors[] = "Database error: " . $stmt->error;
       }
@@ -172,6 +189,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   <label>Phone Number*</label>
   <input type="text" name="phone" value="<?= htmlspecialchars($fields['phone']) ?>" required>
 
+  <label>Password*</label>
+  <input type="password" name="password" required>
+
+  <label>Confirm Password*</label>
+  <input type="password" name="confirm_password" required>
+
   <label>Description</label>
   <textarea name="description"><?= htmlspecialchars($fields['description']) ?></textarea>
 
@@ -214,7 +237,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       });
   });
 
-  // Load areas if city is already selected (e.g., on form resubmission)
   window.addEventListener('DOMContentLoaded', function () {
     const citySelect = document.getElementById('citySelect');
     if (citySelect.value) {
@@ -228,3 +250,4 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </footer>
 </body>
 </html>
+<?php include "footer.php"; ?>
