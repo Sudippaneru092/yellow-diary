@@ -151,6 +151,7 @@ $postsResult = mysqli_query($conn, $postsQuery);
         <article class="feature-card" data-category="<?= $categoryClass ?>">
           <div class="card-image">
             <img src="<?= $imagePath ?>" alt="<?= htmlspecialchars($row['name']) ?>" onerror="this.src='images/default.jpg'">
+          <?php echo $imagePath;?>
           </div>
           <div class="card-content">
             <h3><?= htmlspecialchars($row['name']) ?></h3>

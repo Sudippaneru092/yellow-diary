@@ -48,12 +48,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (!in_array($_FILES['image']['type'], $allowedTypes)) {
       $errors[] = "Only JPG, PNG, and GIF images are allowed.";
     } else {
-      $uploadDir = "uploads/business_images/";
+      $uploadDir = "admin/uploads/business_images/";
       if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
       $imageName = time() . "_" . basename($_FILES["image"]["name"]);
       $targetFile = $uploadDir . $imageName;
       if (move_uploaded_file($_FILES["image"]["tmp_name"], $targetFile)) {
-        $imagePath = $targetFile;
+        $imagePath = "uploads/business_images/".$imageName;
       } else {
         $errors[] = "Failed to upload image.";
       }
