@@ -870,3 +870,29 @@ p {
 }
 
 
+.category,
+.post-category {
+  padding: 0.75rem 1.5rem;
+  background: #e0e0e0;
+  border-radius: 25px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: var(--shadow-sm);
+  border: none;
+}
+
+.category:hover,
+.post-category:hover {
+  background: #ffd54f;
+  color: #333;
+  transform: scale(1.05);
+}
+
+.category.active,
+.post-category.active {
+  background: var(--primary-color);
+  color: var(--text-dark);
+  box-shadow: 0 6px 15px rgba(255, 193, 7, 0.8);
+  transform: scale(1.1);
+}
