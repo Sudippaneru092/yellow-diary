@@ -221,42 +221,83 @@ p {
   transform: translateY(-3px);
   box-shadow: 0 5px 15px rgba(230, 172, 0, 0.3);
 }
-
-.advanced-toggle {
-  text-align: center;
-  margin: 1rem 0;
-  width: 100%;
+/* ===== Advanced Search ===== */
+#advancedSearchForm {
+  display: none; /* Hide by default */
 }
 
-.advanced-toggle button {
-  background: none;
-  border: none;
-  color: var(--secondary-color);
-  font-weight: 600;
-  cursor: pointer;
-  transition: var(--transition);
-  padding: 0.75rem;
-  font-size: 1rem;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.advanced-toggle button:hover {
-  color: #0056b3;
-}
-
-.advanced-search {
-  display: none;
-  width: 100%;
-  gap: 1rem;
-  animation: fadeIn 0.3s ease-out;
-}
-
-/* Fix advanced search toggle reveal */
 #advancedSearchForm.show {
   display: flex !important;
-  flex-wrap: wrap;
+  flex-wrap: nowrap !important;
+  gap: 1rem !important;
+  align-items: center !important;
+  overflow-x: auto;
+  padding: 0.5rem 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary-color) transparent;
+}
+
+#advancedSearchForm.show::-webkit-scrollbar {
+  height: 6px;
+}
+
+#advancedSearchForm.show::-webkit-scrollbar-thumb {
+  background-color: var(--primary-color);
+  border-radius: 3px;
+}
+
+#advancedSearchForm.show > * {
+  flex: 0 0 auto;
+  min-width: 150px;
+}
+
+#advancedSearchForm.show > input,
+#advancedSearchForm.show > select {
+  padding: 0.6rem 0.8rem;
+  font-size: 1rem;
+  border: 1.5px solid #ddd;
+  border-radius: var(--border-radius);
+  background: #fafafa;
+  transition: border-color 0.3s ease;
+}
+
+#advancedSearchForm.show > input:focus,
+#advancedSearchForm.show > select:focus {
+  border-color: var(--primary-color);
+  outline: none;
+  background: #fff;
+  box-shadow: 0 0 8px rgba(255, 193, 7, 0.4);
+}
+
+#advancedSearchForm.show > button {
+  cursor: pointer;
+  background: var(--primary-color);
+  border: none;
+  color: var(--text-dark);
+  padding: 0.7rem 1.6rem;
+  font-weight: 700;
+  font-size: 1rem;
+  border-radius: var(--border-radius);
+  transition: background-color 0.3s ease;
+  white-space: nowrap;
+}
+
+#advancedSearchForm.show > button:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(230, 172, 0, 0.5);
+}
+
+/* Responsive fix for smaller screens */
+@media (max-width: 576px) {
+  #advancedSearchForm.show {
+    padding: 0.5rem 0;
+    overflow-x: auto;
+  }
+
+  #advancedSearchForm.show > * {
+    min-width: 140px;
+  }
 }
 
 /* ===== Categories ===== */
@@ -829,77 +870,3 @@ p {
 }
 
 
-/* ===== Advanced Search: all inputs & buttons in single row ===== */
-#advancedSearchForm.show {
-  display: flex !important;
-  flex-wrap: nowrap !important;
-  gap: 1rem !important;
-  align-items: center !important;
-  overflow-x: auto;
-  padding: 0.5rem 0;
-  scrollbar-width: thin;
-  scrollbar-color: var(--primary-color) transparent;
-}
-
-#advancedSearchForm.show::-webkit-scrollbar {
-  height: 6px;
-}
-
-#advancedSearchForm.show::-webkit-scrollbar-thumb {
-  background-color: var(--primary-color);
-  border-radius: 3px;
-}
-
-#advancedSearchForm.show > * {
-  flex: 0 0 auto;
-  min-width: 150px;
-}
-
-#advancedSearchForm.show > input,
-#advancedSearchForm.show > select {
-  padding: 0.6rem 0.8rem;
-  font-size: 1rem;
-  border: 1.5px solid #ddd;
-  border-radius: var(--border-radius);
-  background: #fafafa;
-  transition: border-color 0.3s ease;
-}
-
-#advancedSearchForm.show > input:focus,
-#advancedSearchForm.show > select:focus {
-  border-color: var(--primary-color);
-  outline: none;
-  background: #fff;
-  box-shadow: 0 0 8px rgba(255, 193, 7, 0.4);
-}
-
-#advancedSearchForm.show > button {
-  cursor: pointer;
-  background: var(--primary-color);
-  border: none;
-  color: var(--text-dark);
-  padding: 0.7rem 1.6rem;
-  font-weight: 700;
-  font-size: 1rem;
-  border-radius: var(--border-radius);
-  transition: background-color 0.3s ease;
-  white-space: nowrap;
-}
-
-#advancedSearchForm.show > button:hover {
-  background: var(--primary-dark);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(230, 172, 0, 0.5);
-}
-
-/* Prevent advanced search form from stacking on small screens */
-@media (max-width: 576px) {
-  #advancedSearchForm.show {
-    padding: 0.5rem 0;
-    overflow-x: auto;
-  }
-
-  #advancedSearchForm.show > * {
-    min-width: 140px;
-  }
-}

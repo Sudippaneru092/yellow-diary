@@ -145,7 +145,7 @@ $postsResult = mysqli_query($conn, $postsQuery);
     <?php if(mysqli_num_rows($featuredResult) > 0): ?>
     <div class="features-grid">
       <?php while ($row = mysqli_fetch_assoc($featuredResult)):
-        $imagePath = (!empty($row['image'])) ? $row['image'] : 'images/default.jpg';
+        $imagePath = (!empty($row['image'])) ? "admin/".$row['image'] : 'images/default.jpg';
         $categoryClass = strtolower($row['category']);
       ?>
         <article class="feature-card" data-category="<?= $categoryClass ?>">

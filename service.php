@@ -9,7 +9,10 @@
 </head>
 <body>
   <!-- Header -->
-  <?php include "header.php";?>
+  <?php include "header.php";
+   
+  ?>
+  
 
   <!-- Services Section -->
   <section class="services">
@@ -51,10 +54,11 @@
       </div>
     </div>
   </section>
-
   <!-- Footer -->
-  <footer>
-    &copy; 2025 Yellow Diary. All rights reserved.
-  </footer>
+  <?php include "footer.php"; ?>
+ 
+  
+  <!-- Scripts -->
+  <script src="assets/js/main.js"></script>
 </body>
 </html>
