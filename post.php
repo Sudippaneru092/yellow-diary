@@ -38,7 +38,7 @@ $related_result = mysqli_query($conn, $related_query);
 
 // Format the created_at date
 $post_date = date('F j, Y', strtotime($post['created_at']));
-$postImage = !empty($post['image']) ? 'admin/uploads/posts/'.$post['image'] : 'images/default-post.jpg';
+$postImage = !empty($post['image']) ? 'admin/uploads/posts/'.$post['image'] : 'images/default-post.png';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -106,7 +106,7 @@ $postImage = !empty($post['image']) ? 'admin/uploads/posts/'.$post['image'] : 'i
             <h2>Related Updates</h2>
             <div class="related-grid">
               <?php while($related = mysqli_fetch_assoc($related_result)): 
-                $relatedImage = !empty($related['image']) ? 'admin/uploads/posts/'.$related['image'] : 'images/default-post.jpg';
+                $relatedImage = !empty($related['image']) ? 'admin/uploads/posts/'.$related['image'] : 'images/default-post.png';
               ?>
                 <article class="related-card">
                   <a href="post.php?id=<?= $related['id'] ?>">

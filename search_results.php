@@ -67,12 +67,13 @@ $result = mysqli_query($conn, $sql);
     <h2>Search Results</h2>
     <div class="features-grid">
       <?php if(mysqli_num_rows($result) > 0): ?>
-        <?php while($row = mysqli_fetch_assoc($result)):
-          $imagePath = !empty($row['image']) ? "admin/".$row['image'] : 'images/default.jpg';
+        <?php while($row = mysqli_fetch_assoc($result)){
+          $imagePath = !empty($row['image']) ? "admin/".$row['image'] : 'images/default-business.png';
         ?>
         <article class="feature-card">
           <div class="card-image">
-            <img src="<?php $imagePath ?>" alt="<?= htmlspecialchars($row['name']) ?>">
+            <img src="<?= htmlspecialchars($imagePath) ?>" alt="<?= htmlspecialchars($row['name']) ?>">
+        
           </div>
           <div class="card-content">
             <h3><?= htmlspecialchars($row['name']) ?></h3>
@@ -89,7 +90,7 @@ $result = mysqli_query($conn, $sql);
             </div>
           </div>
         </article>
-        <?php endwhile; ?>
+        <?php } ?>
       <?php else: ?>
         <p>No businesses found for your search.</p>
       <?php endif; ?>

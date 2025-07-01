@@ -49,12 +49,12 @@ $result = $stmt->get_result();
     <?php if ($result && $result->num_rows > 0): ?>
       <div class="features-grid">
         <?php while ($row = $result->fetch_assoc()):
-          $imagePath = !empty($row['image']) ? $row['image'] : 'images/default.jpg';
+          $imagePath = !empty($row['image']) ? $row['image'] : 'images/default-business.png';
           $categoryClass = strtolower($row['category']);
         ?>
           <article class="feature-card" data-category="<?= $categoryClass ?>">
             <div class="card-image">
-              <img src="<?= $imagePath ?>" alt="<?= htmlspecialchars($row['name']) ?>" onerror="this.src='images/default.jpg'">
+              <img src="<?= $imagePath ?>" alt="<?= htmlspecialchars($row['name']) ?>" onerror="this.src='images/default-business.png'">
             </div>
             <div class="card-content">
               <h3><?= htmlspecialchars($row['name']) ?></h3>

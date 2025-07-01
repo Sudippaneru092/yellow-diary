@@ -43,7 +43,7 @@ $result = mysqli_query($conn, $query);
       <?php if(mysqli_num_rows($result) > 0): ?>
         <div class="posts-grid">
           <?php while($post = mysqli_fetch_assoc($result)): 
-            $postImage = !empty($post['image']) ? 'admin/uploads/posts/'.$post['image'] : 'images/default-post.jpg';
+            $postImage = !empty($post['image']) ? 'admin/uploads/posts/'.$post['image'] : 'images/default-post.png';
           ?>
             <article class="post-card">
               <div class="post-image">

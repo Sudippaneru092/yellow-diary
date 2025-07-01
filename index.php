@@ -145,12 +145,12 @@ $postsResult = mysqli_query($conn, $postsQuery);
     <?php if(mysqli_num_rows($featuredResult) > 0): ?>
     <div class="features-grid">
       <?php while ($row = mysqli_fetch_assoc($featuredResult)):
-        $imagePath = (!empty($row['image'])) ? "admin/".$row['image'] : 'images/default.jpg';
+        $imagePath = (!empty($row['image'])) ? "admin/".$row['image'] : 'images/default-business.png';
         $categoryClass = strtolower($row['category']);
       ?>
         <article class="feature-card" data-category="<?= $categoryClass ?>">
           <div class="card-image">
-            <img src="<?= $imagePath ?>" alt="<?= htmlspecialchars($row['name']) ?>" onerror="this.src='images/default.jpg'">
+            <img src="<?= $imagePath ?>" alt="<?= htmlspecialchars($row['name']) ?>" onerror="this.src='images/default-business.png'">
           <?php echo $imagePath;?>
           </div>
           <div class="card-content">
@@ -192,12 +192,12 @@ $postsResult = mysqli_query($conn, $postsQuery);
       <div class="posts-grid">
         <?php if(mysqli_num_rows($postsResult) > 0): ?>
           <?php while($post = mysqli_fetch_assoc($postsResult)):
-            $postImage = !empty($post['image']) ? 'admin/uploads/posts/' . $post['image'] : 'images/default-post.jpg';
+            $postImage = !empty($post['image']) ? 'admin/uploads/posts/' . $post['image'] : 'images/default-post.png';
             $postCategoryClass = strtolower($post['category']);
           ?>
             <article class="post-card" data-category="<?= $postCategoryClass ?>">
               <div class="post-image">
-                <img src="<?= $postImage ?>" alt="<?= htmlspecialchars($post['title']) ?>" onerror="this.src='images/default-post.jpg'">
+                <img src="<?= $postImage ?>" alt="<?= htmlspecialchars($post['title']) ?>" onerror="this.src='images/default-post.png'">
                 <div class="post-badge"><?= htmlspecialchars($post['category']) ?></div>
               </div>
               <div class="post-content">
