@@ -1,4 +1,5 @@
-/* ===== Variables & Reset ===== */
+
+    /* ===== Variables & Reset ===== */
 :root {
   --primary-color: #ffc107;
   --primary-dark: #e6ac00;
@@ -870,8 +871,14 @@ p {
 }
 
 
-.category,
+    .category,
 .post-category {
+  
+  display: inline-block;
+  margin: 0.25rem;
+  text-decoration: none;
+  color: var(--text-dark);
+  font-size: 0.875rem;
   padding: 0.75rem 1.5rem;
   background: #e0e0e0;
   border-radius: 25px;
@@ -880,6 +887,7 @@ p {
   transition: var(--transition);
   box-shadow: var(--shadow-sm);
   border: none;
+  
 }
 
 .category:hover,
@@ -887,6 +895,23 @@ p {
   background: #ffd54f;
   color: #333;
   transform: scale(1.05);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  font-weight: 700;
+  transition: all 0.3s ease-in-out;
+  text-decoration: none;
+  color: var(--text-dark);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  font-size: 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: inline-block;
+  margin: 0.25rem;
+  text-align: center;
+  color: var(--text-dark);
+  transition: all 0.3s ease;
+  text-decoration: none;
+  
 }
 
 .category.active,
@@ -895,4 +920,37 @@ p {
   color: var(--text-dark);
   box-shadow: 0 6px 15px rgba(255, 193, 7, 0.8);
   transform: scale(1.1);
+  font-weight: 700;
+
 }
+.advanced-toggle button {
+  margin-top: 1rem;
+  background: var(--primary-color);
+  color: var(--text-dark);
+  font-weight: 700;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  justify-content: center;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-decoration: none;
+  
+}
+
+.advanced-toggle button:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(230, 172, 0, 0.4);
+}
+
+  
+ 
