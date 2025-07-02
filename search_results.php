@@ -14,6 +14,9 @@ $where = "WHERE status IN ('approved', 'active')";
 
 $conditions = [];
 
+// Exclude invalid coordinates always
+$conditions[] = "(latitude != 0 AND longitude != 0)";
+
 // Basic Search
 if (!empty($query)) {
     $safe = mysqli_real_escape_string($conn, $query);
@@ -40,12 +43,20 @@ if (!empty($lat) && !empty($lng) && !empty($radius)) {
     $lat = (float)$lat;
     $lng = (float)$lng;
 
-    $conditions[] = "(6371 * acos(cos(radians($lat)) * cos(radians(latitude)) * cos(radians(longitude) - radians($lng)) + sin(radians($lat)) * sin(radians(latitude)))) <= $radius";
+    $conditions[] = "(
+        latitude != 0 AND longitude != 0 AND
+        (6371 * acos(
+            cos(radians($lat)) * cos(radians(latitude)) *
+            cos(radians(longitude) - radians($lng)) +
+            sin(radians($lat)) * sin(radians(latitude))
+        )) <= $radius
+    )";
 }
 
 if (!empty($conditions)) {
     $where .= ' AND ' . implode(' AND ', $conditions);
 }
+
 
 $sql = "SELECT * FROM businesses $where ORDER BY created_at DESC";
 $result = mysqli_query($conn, $sql);
