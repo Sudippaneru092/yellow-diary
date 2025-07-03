@@ -121,7 +121,8 @@ if (isset($_GET['action'], $_GET['id'])) {
               <td><?= $post['id'] ?></td>
               <td>
                 <?php if ($post['image']): ?>
-                  <img src="admin/uploads/posts/<?= htmlspecialchars($post['image']) ?>" width="70" height="50" style="object-fit: cover;">
+                  <img src="uploads/posts/<?= htmlspecialchars($post['image']) ?>" width="70" height="50" style="object-fit: cover;">
+                  <?php echo $post['image']; ?>
                 <?php else: ?>
                   <span class="text-muted">N/A</span>
                 <?php endif; ?>
