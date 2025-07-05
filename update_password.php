@@ -53,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <title>Password Reset</title>
                 <script>
                     setTimeout(function() {
-                        window.location.href = 'login.php';
+                        window.location.href = 'business_login.php';
                     }, 4000); // 4 seconds
                 </script>
             </head>
