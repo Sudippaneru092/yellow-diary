@@ -1,4 +1,11 @@
 <?php
+
+// Instructions to add sender email
+// goto gmail setting and first turn-on 2 factor auth
+// search for app password and create app and copy password
+
+
+
 session_start();
 $email = '';  // Initialize variable to avoid undefined warning
 
@@ -32,8 +39,8 @@ try {
     $mail->isSMTP();                        // Set mailer to use SMTP (instead of PHP mail function)
     $mail->Host       = 'smtp.gmail.com';  // Specify main and backup SMTP servers (Gmail SMTP server)
     $mail->SMTPAuth   = true;               // Enable SMTP authentication (required for Gmail)
-    $mail->Username   = 'sudeepanip1@gmail.com';// SMTP username (your Gmail email)
-    $mail->Password   = 'gsjbhinmbatambvl';           // SMTP password (your Gmail password or app-specific password)
+    $mail->Username   = 'gmailexample@gmail.com';    // SMTP username (your Gmail email)            gmail goes here
+    $mail->Password   = 'password';           // SMTP password (your Gmail password or app-specific password)    app password goes here without space
     $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS; // Enable TLS encryption (STARTTLS)
     $mail->Port       = 587;                // TCP port to connect to (587 is default for STARTTLS)
 
@@ -48,7 +55,7 @@ try {
         
 
     // Recipients
-    $mail->setFrom('sudeepanip1@gmail.com', 'Yellow Diary');       // Set sender's email and name
+    $mail->setFrom('gmail.com', 'Yellow Diary');       // Set sender's email and name
     //    $mail->addAddress('joe@example.net', 'Joe User');   // Add a recipient with name
     $mail->addAddress($email);             // Add another recipient without a name
     // $mail->addReplyTo('', '');                   // Add a reply-to email address and name
