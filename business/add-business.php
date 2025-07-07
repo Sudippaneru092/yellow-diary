@@ -1,5 +1,8 @@
 <?php
-session_start();
+// Start session safely
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 include "../admin/db.php";
 
 // Redirect if not logged in

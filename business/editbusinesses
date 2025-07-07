@@ -1,0 +1,68 @@
+<?php
+session_start();
+include '../admin/db.php';
+if (!isset($_SESSION['business_id'])) {
+    header("Location: ../business_login.php");
+    exit();
+}
+
+$id = $_SESSION['business_id'];
+$query = "SELECT * FROM businesses WHERE id = $id";
+$result = mysqli_query($conn, $query);
+$business = mysqli_fetch_assoc($result);
+
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    $name = $_POST['name'];
+    $phone = $_POST['phone'];
+    $description = $_POST['description'];
+    $url = $_POST['url'];
+    $image = $business['image'];
+
+    // Upload new image if selected
+    if (!empty($_FILES['image']['name'])) {
+        $image = basename($_FILES['image']['name']);
+        move_uploaded_file($_FILES['image']['tmp_name'], "../uploads/$image");
+    }
+
+    $update = "UPDATE businesses SET name='$name', phone='$phone', url='$url', description='$description', image='$image' WHERE id=$id";
+    mysqli_query($conn, $update);
+    header("Location: dashboard.php");
+    exit();
+}
+include 'includes/header.php';
+include 'includes/sidebar.php';
+?>
+
+<div class="content-wrapper">
+  <section class="content-header">
+    <h1>Edit Business Info</h1>
+  </section>
+  <section class="content">
+    <form method="POST" enctype="multipart/form-data" class="container-fluid">
+      <div class="form-group">
+        <label>Business Name</label>
+        <input type="text" name="name" value="<?= htmlspecialchars($business['name']) ?>" class="form-control">
+      </div>
+      <div class="form-group">
+        <label>Phone</label>
+        <input type="text" name="phone" value="<?= htmlspecialchars($business['phone']) ?>" class="form-control">
+      </div>
+      <div class="form-group">
+        <label>URL</label>
+        <input type="text" name="url" value="<?= htmlspecialchars($business['url']) ?>" class="form-control">
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <textarea name="description" class="form-control"><?= htmlspecialchars($business['description']) ?></textarea>
+      </div>
+      <div class="form-group">
+        <label>Current Image</label><br>
+        <img src="../uploads/<?= htmlspecialchars($business['image']) ?>" width="150"><br><br>
+        <input type="file" name="image" class="form-control-file">
+      </div>
+      <button type="submit" class="btn btn-primary">Save Changes</button>
+    </form>
+  </section>
+</div>
+
+<?php include 'includes/footer.php'; ?>

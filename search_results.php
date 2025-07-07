@@ -38,7 +38,6 @@ if (!empty($location) && $location !== 'Near Me') {
 
 // Radius (Haversine formula for nearby businesses)
 if (!empty($lat) && !empty($lng) && !empty($radius)) {
-  echo "<pre>Using radius search with lat: $lat, lng: $lng, radius: $radius</pre>";
     $radius = (float)$radius;
     $lat = (float)$lat;
     $lng = (float)$lng;
@@ -60,7 +59,6 @@ if (!empty($conditions)) {
 
 $sql = "SELECT * FROM businesses $where ORDER BY created_at DESC";
 $result = mysqli_query($conn, $sql);
-echo "<pre>$sql</pre>";
 
 ?>
 

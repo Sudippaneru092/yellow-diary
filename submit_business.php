@@ -40,19 +40,30 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   if (empty($fields['city'])) $errors[] = "City is required.";
   if (empty($fields['area'])) $errors[] = "Area is required.";
   if (empty($fields['phone'])) $errors[] = "Phone number is required.";
-  if (empty($fields['email']) || !filter_var($fields['email'], FILTER_VALIDATE_EMAIL)) {
-    $errors[] = "A valid email address is required.";
-  }
-  if (!empty($fields['url']) && !filter_var($fields['url'], FILTER_VALIDATE_URL)) {
-    $errors[] = "Invalid URL format.";
+
+  // Email or URL (at least one required)
+  $emailFilled = !empty($fields['email']);
+  $urlFilled = !empty($fields['url']);
+
+  if (!$emailFilled && !$urlFilled) {
+    $errors[] = "Please provide at least an Email or a Website URL.";
   }
 
+  if ($emailFilled && !filter_var($fields['email'], FILTER_VALIDATE_EMAIL)) {
+    $errors[] = "Invalid email address.";
+  }
+
+  if ($urlFilled && !filter_var($fields['url'], FILTER_VALIDATE_URL)) {
+    $errors[] = "Invalid website URL.";
+  }
+
+  // Password validation
   if (empty($password) || empty($confirmPassword)) {
     $errors[] = "Password and Confirm Password are required.";
   } elseif ($password !== $confirmPassword) {
     $errors[] = "Passwords do not match.";
-  } elseif (strlen($password) < 6) {
-    $errors[] = "Password must be at least 6 characters long.";
+  } elseif (strlen($password) < 8) {
+    $errors[] = "Password must be at least 8 characters long.";
   }
 
   // Handle image upload
@@ -126,7 +137,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Submit Business</title>
-  <link rel="stylesheet" href="main.css">
+  <link rel="stylesheet" href="main.css" />
+  <style>
+    .validation-message {
+      font-size: 0.9em;
+      margin-top: 2px;
+    }
+  </style>
 </head>
 <body>
 <?php include "header.php"; ?>
@@ -151,7 +168,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   </div>
 <?php endif; ?>
 
-<form method="POST" enctype="multipart/form-data">
+<form method="POST" enctype="multipart/form-data" id="businessForm">
   <label>Business Name*</label>
   <input type="text" name="name" value="<?= htmlspecialchars($fields['name']) ?>" required>
 
@@ -183,23 +200,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <option value="">Select Area</option>
   </select>
 
-  <label>Email*</label>
-  <input type="email" name="email" value="<?= htmlspecialchars($fields['email']) ?>" required>
+  <label>Email (Optional, but either Email or Website is required)</label>
+  <input type="email" name="email" value="<?= htmlspecialchars($fields['email']) ?>">
+  
+  <label>Website (Optional, but either Website or Email is required)</label>
+  <input type="url" name="url" value="<?= htmlspecialchars($fields['url']) ?>">
+  <div id="contactMessage" class="validation-message"></div>
 
   <label>Phone Number*</label>
   <input type="text" name="phone" value="<?= htmlspecialchars($fields['phone']) ?>" required>
 
   <label>Password*</label>
   <input type="password" name="password" required>
+  <div id="passwordMessage" class="validation-message"></div>
 
   <label>Confirm Password*</label>
   <input type="password" name="confirm_password" required>
+  <div id="confirmMessage" class="validation-message"></div>
 
   <label>Description</label>
   <textarea name="description"><?= htmlspecialchars($fields['description']) ?></textarea>
-
-  <label>Website (Optional)</label>
-  <input type="url" name="url" value="<?= htmlspecialchars($fields['url']) ?>">
 
   <label>Latitude</label>
   <input type="text" name="latitude" value="<?= htmlspecialchars($fields['latitude']) ?>">
@@ -243,11 +263,69 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       citySelect.dispatchEvent(new Event('change'));
     }
   });
+
+  // Real-time & form submission validation
+  document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById('businessForm');
+    const password = form.querySelector('input[name="password"]');
+    const confirmPassword = form.querySelector('input[name="confirm_password"]');
+    const email = form.querySelector('input[name="email"]');
+    const url = form.querySelector('input[name="url"]');
+    const passwordMessage = document.getElementById('passwordMessage');
+    const confirmMessage = document.getElementById('confirmMessage');
+    const contactMessage = document.getElementById('contactMessage');
+
+    function validatePassword() {
+      if (password.value.length < 8) {
+        passwordMessage.textContent = "Password must be at least 8 characters.";
+        passwordMessage.style.color = "red";
+      } else {
+        passwordMessage.textContent = "Password length looks good.";
+        passwordMessage.style.color = "green";
+      }
+    }
+
+    function validateConfirmPassword() {
+      if (password.value !== confirmPassword.value) {
+        confirmMessage.textContent = "Passwords do not match.";
+        confirmMessage.style.color = "red";
+      } else {
+        confirmMessage.textContent = "Passwords match.";
+        confirmMessage.style.color = "green";
+      }
+    }
+
+    function validateEmailOrURL() {
+      if (email.value.trim() === "" && url.value.trim() === "") {
+        contactMessage.textContent = "Please fill at least Email or Website.";
+        contactMessage.style.color = "red";
+      } else {
+        contactMessage.textContent = "Looks good.";
+        contactMessage.style.color = "green";
+      }
+    }
+
+    password.addEventListener("input", validatePassword);
+    confirmPassword.addEventListener("input", validateConfirmPassword);
+    email.addEventListener("input", validateEmailOrURL);
+    url.addEventListener("input", validateEmailOrURL);
+
+    form.addEventListener("submit", function (e) {
+      if (password.value.length < 8) {
+        alert("Password must be at least 8 characters long.");
+        e.preventDefault();
+      } else if (password.value !== confirmPassword.value) {
+        alert("Passwords do not match.");
+        e.preventDefault();
+      } else if (email.value.trim() === "" && url.value.trim() === "") {
+        alert("Please provide at least an Email or a Website URL.");
+        e.preventDefault();
+      }
+    });
+  });
 </script>
 
-<footer>
-  &copy; 2025 Yellow Diary. All rights reserved.
-</footer>
+
 </body>
 </html>
 <?php include "footer.php"; ?>

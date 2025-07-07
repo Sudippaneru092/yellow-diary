@@ -2,7 +2,7 @@
 <header class="header">
   <div class="navbar">
     <h1>Yellow Diary</h1>
-    <nav class="nav">
+    <nav class="nav" aria-label="Main Navigation">
       <a href="index.php">Home</a>
       <a href="service.php">Services</a>
       <a href="about-us.php">About Us</a>
@@ -16,6 +16,7 @@
       <?php else: ?>
         <a href="business_login.php">Business Login</a>
       <?php endif; ?>
+      <a href="business/dashboard.php">Business Dashboard</a>
     </nav>
   </div>
 </header>
