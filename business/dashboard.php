@@ -1,89 +1,161 @@
 <?php
-// Start session safely
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+session_start();
+include '../admin/db.php'; // Adjust path if needed
 
-// Include database connection
-include '../admin/db.php';
-
-// Validate session
-if (!isset($_SESSION['business_id']) || !is_numeric($_SESSION['business_id'])) {
-    die("Invalid business session. Please login.");
+if (!isset($_SESSION['business_id'])) {
+    header('Location: login.php');
+    exit();
 }
 
 $business_id = $_SESSION['business_id'];
 
-// Fetch business data securely
-$stmt = $conn->prepare("SELECT * FROM businesses WHERE id = ?");
+$sql = "SELECT * FROM businesses WHERE id = ?";
+$stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $business_id);
 $stmt->execute();
 $result = $stmt->get_result();
 
-if (!$result || $result->num_rows === 0) {
-    die("Business not found or database error.");
+if ($result->num_rows > 0) {
+    $business = $result->fetch_assoc();
+} else {
+    echo "Business not found.";
+    exit();
 }
-
-$business = $result->fetch_assoc();
-$stmt->close();
-
-// Prepare image path
-$imagePath = __DIR__ . "/../uploads/" . $business['image'];
-$imageUrl = "../uploads/" . $business['image'];
-
-// Include layout
-include 'includes/header.php';
-include 'includes/sidebar.php';
 ?>
 
-<!-- Content Wrapper -->
-<div class="content-wrapper">
-  <section class="content-header">
-    <div class="container-fluid">
-      <h1>Welcome, <?= htmlspecialchars($business['name']) ?></h1>
-    </div>
-  </section>
+<?php include 'includes/header.php'; ?>
 
-  <section class="content">
-    <div class="container-fluid">
-      <div class="card">
-        <div class="card-body">
+<body>
+<div class="d-flex" id="wrapper">
 
-          <p><strong>Email:</strong> <?= htmlspecialchars($business['email']) ?></p>
-          <p><strong>Phone:</strong> <?= htmlspecialchars($business['phone']) ?></p>
-          <p><strong>Category:</strong> <?= htmlspecialchars($business['category']) ?></p>
-          <p><strong>Location:</strong> <?= htmlspecialchars($business['location']) ?></p>
-          <p><strong>Status:</strong> 
-            <?php if ($business['status'] === 'approved'): ?>
-              <span class="badge badge-success">Approved</span>
-            <?php else: ?>
-              <span class="badge badge-warning">Pending</span>
-            <?php endif; ?>
-          </p>
-          <p><strong>Joined On:</strong> <?= date('d M Y', strtotime($business['created_at'])) ?></p>
-          <p><strong>Last Login:</strong> <?= $business['last_login'] ? date('d M Y H:i', strtotime($business['last_login'])) : 'N/A' ?></p>
-          <p><strong>Website URL:</strong> 
-            <a href="<?= htmlspecialchars($business['url']) ?>" target="_blank">
-              <?= htmlspecialchars($business['url']) ?>
-            </a>
-          </p>
+  <?php include 'includes/sidebar.php'; ?>
 
-          <p><strong>Description:</strong><br>
-            <?= nl2br(htmlspecialchars($business['description'])) ?>
-          </p>
+  <div id="page-content-wrapper" class="flex-grow-1">
 
-          <p><strong>Business Image:</strong><br>
-            <?php if (!empty($business['image']) && file_exists($imagePath)): ?>
-              <img src="<?= $imageUrl ?>" width="200" alt="Business Image" class="img-thumbnail">
-            <?php else: ?>
-              <em>No image available</em>
-            <?php endif; ?>
-          </p>
+    <!-- Navbar / Header with toggle button -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
+      <div class="container-fluid">
+        <button class="btn btn-primary" id="sidebarToggle">
+          <i class="fas fa-bars"></i>
+        </button>
+        <span class="navbar-brand ms-3">Welcome, <?= htmlspecialchars($business['name']) ?></span>
+      </div>
+    </nav>
 
+    
+
+    <div class="container-fluid px-4">
+      <h2>Business Details</h2>
+
+      <div class="row">
+
+        <div class="col-md-8">
+          <div class="card shadow mb-4">
+            <div class="card-header bg-primary text-white">
+              Business Details
+            </div>
+            <div class="card-body">
+              <p><i class="fas fa-envelope"></i> <strong>Email:</strong> <?= htmlspecialchars($business['email']) ?></p>
+              <p><i class="fas fa-phone-alt"></i> <strong>Phone:</strong> <?= htmlspecialchars($business['phone']) ?></p>
+              <p><i class="fas fa-layer-group"></i> <strong>Category:</strong> <?= htmlspecialchars($business['category']) ?></p>
+              <p><i class="fas fa-map-marker-alt"></i> <strong>Location:</strong> <?= htmlspecialchars($business['location']) ?></p>
+
+              <p>
+                <strong>Status:</strong>
+                <?php if (!empty($business['status']) && strtolower($business['status']) === 'approved'): ?>
+                  <span class="badge bg-success">Approved</span>
+                <?php else: ?>
+                  <span class="badge bg-warning text-dark">Pending</span>
+                <?php endif; ?>
+              </p>
+
+              <p><strong>Joined On:</strong> <?= !empty($business['created_at']) ? date('d M Y', strtotime($business['created_at'])) : 'N/A' ?></p>
+              <p><strong>Last Login:</strong> <?= !empty($business['last_login']) ? date('d M Y H:i', strtotime($business['last_login'])) : 'N/A' ?></p>
+
+              <p><strong>Website:</strong>
+                <?php if (!empty($business['url'])): ?>
+                  <a href="<?= htmlspecialchars($business['url']) ?>" target="_blank" rel="noopener noreferrer">
+                    <?= htmlspecialchars($business['url']) ?>
+                  </a>
+                <?php else: ?>
+                  N/A
+                <?php endif; ?>
+              </p>
+
+              <p><strong>Description:</strong><br>
+                <?= nl2br(htmlspecialchars($business['description'])) ?>
+              </p>
+            </div>
+          </div>
         </div>
+
+        <div class="col-md-4">
+          <div class="card shadow mb-4">
+            <div class="card-header bg-warning text-dark">
+              Business Image
+            </div>
+            <div class="card-body text-center">
+              <?php
+                $imagePath = __DIR__ . "/../uploads/" . ($business['image'] ?? '');
+                $imageUrl = "../uploads/" . ($business['image'] ?? '');
+              ?>
+              <?php if (!empty($business['image']) && file_exists($imagePath)): ?>
+                <img src="<?= htmlspecialchars($imageUrl) ?>" class="img-fluid img-thumbnail" alt="Business Image" style="max-height: 200px;">
+              <?php else: ?>
+                <img src="../uploads/default.png" class="img-fluid img-thumbnail" alt="Default Image" style="max-height: 200px;">
+              <?php endif; ?>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
-  </section>
+
+  </div>
 </div>
 
 <?php include 'includes/footer.php'; ?>
+
+<!-- Sidebar toggle script -->
+<script>
+  const sidebarToggle = document.getElementById('sidebarToggle');
+  const wrapper = document.getElementById('wrapper');
+
+  sidebarToggle.addEventListener('click', () => {
+    wrapper.classList.toggle('toggled');
+  });
+</script>
+
+<style>
+  /* Sidebar toggle styles */
+  #wrapper {
+    display: flex;
+    flex-wrap: nowrap;
+  }
+  #sidebarMenu {
+    width: 250px;
+    transition: margin-left 0.3s ease;
+  }
+  #wrapper.toggled #sidebarMenu {
+    margin-left: -250px;
+  }
+  #page-content-wrapper {
+    width: 100%;
+  }
+  @media (max-width: 768px) {
+    #sidebarMenu {
+      margin-left: -250px;
+      position: fixed;
+      height: 100vh;
+      z-index: 1030;
+    }
+    #wrapper.toggled #sidebarMenu {
+      margin-left: 0;
+      box-shadow: 2px 0 5px rgba(0,0,0,.5);
+      background-color: #f8f9fa;
+    }
+  }
+</style>
+
+</body>
+</html>
