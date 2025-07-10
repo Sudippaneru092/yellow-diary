@@ -75,7 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!$error) {
             // Update query without status
             $stmt = $conn->prepare("UPDATE posts SET title=?, category=?, location=?, description=?, image=? WHERE id=? AND business_id=?");
-            $stmt->bind_param("ssssiii", $title, $category, $location, $description, $image, $post_id, $business_id);
+            $stmt->bind_param("sssssii", $title, $category, $location, $description, $image, $post_id, $business_id);
 
             if ($stmt->execute()) {
                 $message = "Post updated successfully.";
