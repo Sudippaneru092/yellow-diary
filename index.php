@@ -388,6 +388,7 @@ p {
 }
 
 .featured-business h2 {
+  text-align: center;
   font-size: 2.2rem;
   margin-bottom: 2.5rem;
   color: var(--dark-bg);

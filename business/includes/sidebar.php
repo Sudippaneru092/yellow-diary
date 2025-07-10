@@ -21,25 +21,15 @@
         </a>
       </li>
 
+
+
       <li class="nav-item mb-2">
-        <a class="nav-link" href="edit_businesses.php">
-          <i class="fas fa-list"></i>
-         manage business
-        </a>
-      </li>
-      <li class="nav-item mb-2">
-  <a class="nav-link" href="my_posts.php">
-    <i class="fas fa-file-alt"></i> My Posts
+  <a class="nav-link" href="manage_posts.php">
+    <i class="fas fa-file-alt"></i> Manage posts
   </a>
 </li>
 
 
-      <li class="nav-item mb-2">
-        <a class="nav-link" href="edit_post.php">
-          <i class="fas fa-plus"></i>
-       manage posts
-        </a>
-      </li>
 
       <li class="nav-item mb-2">
         <a class="nav-link" href="change_password.php">
@@ -48,12 +38,8 @@
         </a>
       </li>
 
-      <li class="nav-item mb-2">
-        <a class="nav-link" href="business_reviews.php">
-          <i class="fas fa-comments"></i>
-          Reviews
-        </a>
-      </li>
+     
+      
 
       <li class="nav-item mt-4">
         <a class="nav-link text-danger" href="logout.php">

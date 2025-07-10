@@ -3,21 +3,21 @@ session_start();
 include '../admin/db.php';
 
 if (!isset($_SESSION['business_id'])) {
-    header("Location: login.php");
+    header("Location: business_login.php");
     exit();
 }
 
 $business_id = $_SESSION['business_id'];
-$message = "";
 
-// Get post ID from query string
+$allowed_categories = ['Event', 'Job Vacancy', 'Announcement', 'Advertising', 'Others'];
+
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
     echo "Invalid post ID.";
     exit();
 }
+
 $post_id = intval($_GET['id']);
 
-// Fetch post to verify ownership
 $stmt = $conn->prepare("SELECT * FROM posts WHERE id = ? AND business_id = ?");
 $stmt->bind_param("ii", $post_id, $business_id);
 $stmt->execute();
@@ -27,67 +27,126 @@ if ($result->num_rows === 0) {
     echo "Post not found or access denied.";
     exit();
 }
+
 $post = $result->fetch_assoc();
 
-// Handle update form submission
+$message = "";
+$error = "";
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title = trim($_POST['title']);
-    $content = trim($_POST['content']);
-    $tags = trim($_POST['tags']);
-    $status = trim($_POST['status']);
+    $category = trim($_POST['category']);
+    $location = trim($_POST['location']);
+    $description = trim($_POST['description']);
 
-    $stmt = $conn->prepare("UPDATE posts SET title=?, content=?, tags=?, status=? WHERE id=? AND business_id=?");
-    $stmt->bind_param("ssssii", $title, $content, $tags, $status, $post_id, $business_id);
-
-    if ($stmt->execute()) {
-        $message = "Post updated successfully.";
-        // Refresh the post data
-        $stmt = $conn->prepare("SELECT * FROM posts WHERE id = ? AND business_id = ?");
-        $stmt->bind_param("ii", $post_id, $business_id);
-        $stmt->execute();
-        $post = $stmt->get_result()->fetch_assoc();
+    if (empty($title) || empty($category) || empty($location) || empty($description)) {
+        $error = "Please fill in all required fields.";
+    } elseif (!in_array($category, $allowed_categories)) {
+        $error = "Invalid category selected.";
     } else {
-        $message = "Failed to update post.";
+        $image = $post['image'];
+        if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+            $target_dir = __DIR__ . "/../admin/uploads/posts/";
+            $imageFileType = strtolower(pathinfo($_FILES["image"]["name"], PATHINFO_EXTENSION));
+            $allowed_types = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+
+            if (!in_array($imageFileType, $allowed_types)) {
+                $error = "Unsupported image format.";
+            } else {
+                $check = getimagesize($_FILES["image"]["tmp_name"]);
+                if ($check === false) {
+                    $error = "Uploaded file is not a valid image.";
+                } else {
+                    $newImageName = uniqid('post_', true) . '.' . $imageFileType;
+                    $target_file = $target_dir . $newImageName;
+
+                    if (move_uploaded_file($_FILES["image"]["tmp_name"], $target_file)) {
+                        if (!empty($image) && file_exists($target_dir . $image)) {
+                            unlink($target_dir . $image);
+                        }
+                        $image = $newImageName;
+                    } else {
+                        $error = "Failed to upload image.";
+                    }
+                }
+            }
+        }
+
+        if (!$error) {
+            // Update query without status
+            $stmt = $conn->prepare("UPDATE posts SET title=?, category=?, location=?, description=?, image=? WHERE id=? AND business_id=?");
+            $stmt->bind_param("ssssiii", $title, $category, $location, $description, $image, $post_id, $business_id);
+
+            if ($stmt->execute()) {
+                $message = "Post updated successfully.";
+                $stmt = $conn->prepare("SELECT * FROM posts WHERE id = ? AND business_id = ?");
+                $stmt->bind_param("ii", $post_id, $business_id);
+                $stmt->execute();
+                $post = $stmt->get_result()->fetch_assoc();
+            } else {
+                $error = "Failed to update post. Please try again.";
+            }
+        }
     }
 }
 ?>
 
 <?php include 'includes/header.php'; ?>
 
-<div class="container mt-4">
+<div class="container mt-4" style="max-width: 700px;">
     <h2>Edit Post</h2>
 
     <?php if ($message): ?>
-        <div class="alert alert-info"><?= htmlspecialchars($message) ?></div>
+        <div class="alert alert-success"><?= htmlspecialchars($message) ?></div>
+    <?php endif; ?>
+    <?php if ($error): ?>
+        <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
     <?php endif; ?>
 
-    <form method="POST" class="row g-3">
-        <div class="col-md-12">
-            <label class="form-label">Title</label>
-            <input type="text" name="title" class="form-control" required value="<?= htmlspecialchars($post['title']) ?>">
+    <form method="POST" enctype="multipart/form-data" class="row g-3">
+        <div class="col-12">
+            <label for="title" class="form-label">Title*</label>
+            <input type="text" name="title" id="title" class="form-control" required value="<?= htmlspecialchars($post['title']) ?>">
         </div>
 
-        <div class="col-md-12">
-            <label class="form-label">Content</label>
-            <textarea name="content" rows="6" class="form-control" required><?= htmlspecialchars($post['content']) ?></textarea>
-        </div>
-
-        <div class="col-md-6">
-            <label class="form-label">Tags (comma-separated)</label>
-            <input type="text" name="tags" class="form-control" value="<?= htmlspecialchars($post['tags']) ?>">
-        </div>
-
-        <div class="col-md-6">
-            <label class="form-label">Status</label>
-            <select name="status" class="form-select">
-                <option value="draft" <?= $post['status'] === 'draft' ? 'selected' : '' ?>>Draft</option>
-                <option value="published" <?= $post['status'] === 'published' ? 'selected' : '' ?>>Published</option>
+        <div class="col-12">
+            <label for="category" class="form-label">Category*</label>
+            <select name="category" id="category" class="form-select" required>
+                <option value="">Select category</option>
+                <?php foreach ($allowed_categories as $cat): ?>
+                    <option value="<?= $cat ?>" <?= $post['category'] === $cat ? 'selected' : '' ?>><?= $cat ?></option>
+                <?php endforeach; ?>
             </select>
         </div>
 
         <div class="col-12">
+            <label for="location" class="form-label">Location*</label>
+            <input type="text" name="location" id="location" class="form-control" required value="<?= htmlspecialchars($post['location']) ?>">
+        </div>
+
+        <div class="col-12">
+            <label for="description" class="form-label">Description*</label>
+            <textarea name="description" id="description" rows="6" class="form-control" required><?= htmlspecialchars($post['description']) ?></textarea>
+        </div>
+
+        <div class="col-12">
+            <label class="form-label">Current Image:</label><br>
+            <?php if (!empty($post['image']) && file_exists(__DIR__ . '/../admin/uploads/posts/' . $post['image'])): ?>
+                <img src="../admin/uploads/posts/<?= htmlspecialchars($post['image']) ?>" alt="Post Image" style="max-width: 200px; margin-bottom: 10px;">
+            <?php else: ?>
+                <p><em>No image uploaded.</em></p>
+            <?php endif; ?>
+        </div>
+
+        <div class="col-12">
+            <label for="image" class="form-label">Replace Image (Optional)</label>
+            <input type="file" name="image" id="image" class="form-control" accept="image/*">
+            <small class="text-muted">Leave empty to keep current image.</small>
+        </div>
+
+        <div class="col-12 d-flex justify-content-between">
             <button type="submit" class="btn btn-primary">Update Post</button>
-            <a href="dashboard.php" class="btn btn-secondary">Cancel</a>
+            <a href="manage_posts.php" class="btn btn-secondary">Cancel</a>
         </div>
     </form>
 </div>
