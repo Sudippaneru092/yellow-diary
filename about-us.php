@@ -1,4 +1,6 @@
 <?php
+session_start();
+
 // about-us.php
 include 'header.php';
 ?>
@@ -45,7 +47,7 @@ We are dedicated to creating a digital space where business owners can showcase 
         <img src="images/team3.jpg" alt="Photo of Mary Johnson, COO" class="member-photo" />
         <h3 class="member-name">Sudip paneru</h3>
         <p class="member-role">Chief Operating Officer</p>
-        <p class="member-bio">Mary oversees daily operations, ensuring efficiency and excellent service delivery across all departments.</p>
+        <p class="member-bio">Oversees the daily operations of the organization and ensure that all departments are aligned with the strategic goals. </p>
       </article>
         <article class="member-card" tabindex="0">
         <img src="images/team4.jpg" alt="Photo of Mary Johnson, COO" class="member-photo" />

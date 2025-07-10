@@ -15,8 +15,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $current = $_POST['current_password'];
     $new = $_POST['new_password'];
     $confirm = $_POST['confirm_password'];
-
-    if ($new !== $confirm) {
+    $message = "";
+    if($current === "" || $new === "" || $confirm === "") {
+        $message = "❌ All fields are required.";
+    } elseif (strlen($new) < 8) {
+        $message = "❌ New password must be at least 8 characters long.";
+    } elseif (strlen($current) < 8) {
+        $message = "❌ Current password must be at least 8 characters long.";
+    }elseif ($new !== $confirm) {
         $message = "❌ New password and confirmation do not match.";
     } else {
         // Fetch current hashed password

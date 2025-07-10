@@ -17,9 +17,10 @@ $result = $stmt->get_result();
 $business = $result->fetch_assoc();
 ?>
 
-<?php include 'includes/header.php'; ?>
 
+<?php include 'includes/header.php'; ?>
 <div class="container mt-4">
+    
     <h2 class="mb-3">Business Profile</h2>
 
     <div class="row">
@@ -64,10 +65,10 @@ $business = $result->fetch_assoc();
                 </div>
                 <div class="card-body text-center">
                     <?php
-                        $imagePath = "../uploads/" . ($business['image'] ?? '');
-                        if (!empty($business['image']) && file_exists(__DIR__ . "/../uploads/" . $business['image'])):
+                        $imagePath = "../admin/" . ($business['image'] ?? '../images/default-business.png');
+                        if (!empty($business['image']) && file_exists("../admin/" . $business['image'])):
                     ?>
-                        <img src="<?= $imagePath ?>" class="img-fluid img-thumbnail" alt="Business Image" style="max-height: 200px;">
+                        <img src="<?= htmlspecialchars($imagePath)  ?>" class="img-fluid img-thumbnail" alt="Business Image" style="max-height: 200px;">
                     <?php else: ?>
                         <img src="../uploads/default.png" class="img-fluid img-thumbnail" alt="Default Image" style="max-height: 200px;">
                     <?php endif; ?>

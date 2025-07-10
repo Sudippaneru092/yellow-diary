@@ -8,8 +8,12 @@
   <link rel="icon" href="assets/images/favicon.ico" type="image/x-icon">
 </head>
 <body>
+
   <!-- Header -->
-  <?php include "header.php";
+  <?php 
+  session_start();
+
+  include "header.php";
    
   ?>
   

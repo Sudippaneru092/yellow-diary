@@ -1,3 +1,4 @@
+
 <!-- Header -->
 <header class="header">
   <div class="navbar">
@@ -16,7 +17,9 @@
       <?php else: ?>
         <a href="business_login.php">Business Login</a>
       <?php endif; ?>
-      <a href="business/dashboard.php">Business Dashboard</a>
+      <?php if(isset($_SESSION['business_id'])): ?>
+        <a href="business/dashboard.php">Dashboard</a>
+      <?php endif; ?>
     </nav>
   </div>
 </header>

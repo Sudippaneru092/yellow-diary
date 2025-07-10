@@ -96,8 +96,9 @@ if ($result->num_rows > 0) {
             </div>
             <div class="card-body text-center">
               <?php
-                $imagePath = __DIR__ . "/../uploads/" . ($business['image'] ?? '');
-                $imageUrl = "../uploads/" . ($business['image'] ?? '');
+
+                $imagePath ="../admin/" . ($business['image'] ?? '../images/default-business.png');
+                $imageUrl = "../admin/" . ($business['image'] ?? '../images/default-business.png');
               ?>
               <?php if (!empty($business['image']) && file_exists($imagePath)): ?>
                 <img src="<?= htmlspecialchars($imageUrl) ?>" class="img-fluid img-thumbnail" alt="Business Image" style="max-height: 200px;">
