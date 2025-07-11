@@ -4,17 +4,12 @@ include 'includes/header.php';
 include 'includes/sidebar.php';
 
 // Filter logic
-$filter_category = $_GET['category'] ?? '';
 $filter_start = $_GET['start_date'] ?? '';
 $filter_end = $_GET['end_date'] ?? '';
+$view = 'all'; // Force view to show all businesses
 
 $where = [];
 $params = [];
-
-if ($filter_category) {
-    $where[] = "category = ?";
-    $params[] = $filter_category;
-}
 
 if ($filter_start && $filter_end) {
     $where[] = "DATE(created_at) BETWEEN ? AND ?";
@@ -24,14 +19,33 @@ if ($filter_start && $filter_end) {
 
 $where_clause = count($where) ? 'WHERE ' . implode(' AND ', $where) : '';
 
-$stmt = $conn->prepare("SELECT * FROM businesses $where_clause ORDER BY created_at DESC LIMIT 10");
-if ($params) $stmt->bind_param(str_repeat('s', count($params)), ...$params);
+// Pagination setup
+$per_page = 10;
+$page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int) $_GET['page'] : 1;
+$offset = ($page - 1) * $per_page;
+
+$sql = "SELECT * FROM businesses $where_clause ORDER BY created_at DESC LIMIT ? OFFSET ?";
+$params[] = $per_page;
+$params[] = $offset;
+$types = str_repeat('s', count($params) - 2) . 'ii';
+
+$stmt = $conn->prepare($sql);
+if (!empty($params)) $stmt->bind_param($types, ...$params);
 $stmt->execute();
-$recent = $stmt->get_result();
+$businesses = $stmt->get_result();
 
 $total = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) AS total FROM businesses"));
-$by_category = mysqli_query($conn, "SELECT category, COUNT(*) AS count FROM businesses GROUP BY category");
-$category_options = mysqli_query($conn, "SELECT name FROM category");
+
+$count_sql = "SELECT COUNT(*) AS total FROM businesses $where_clause";
+$count_stmt = $conn->prepare($count_sql);
+if (!empty($where)) {
+    $bind_types = str_repeat('s', count($params) - 2);
+    $count_stmt->bind_param($bind_types, ...array_slice($params, 0, -2));
+}
+$count_stmt->execute();
+$result = $count_stmt->get_result();
+$count_data = $result->fetch_assoc();
+$total_pages = ceil($count_data['total'] / $per_page);
 ?>
 
 <div class="content-wrapper">
@@ -43,21 +57,13 @@ $category_options = mysqli_query($conn, "SELECT name FROM category");
     <!-- Filters -->
     <form class="row mb-4" method="GET">
       <div class="col-md-3">
-        <select name="category" class="form-control">
-          <option value="">All Categories</option>
-          <?php while($cat = $category_options->fetch_assoc()): ?>
-            <option value="<?= $cat['name'] ?>" <?= ($filter_category === $cat['name']) ? 'selected' : '' ?>>
-              <?= htmlspecialchars($cat['name']) ?>
-            </option>
-          <?php endwhile; ?>
-        </select>
-      </div>
-      <div class="col-md-3">
         <input type="date" name="start_date" class="form-control" value="<?= htmlspecialchars($filter_start) ?>">
       </div>
-      
       <div class="col-md-3">
-        <button type="submit" class="btn btn-primary"><i class="fas fa-filter"></i> Filter</button>
+        <input type="date" name="end_date" class="form-control" value="<?= htmlspecialchars($filter_end) ?>">
+      </div>
+      <div class="col-md-3 mt-2">
+        <button type="submit" class="btn btn-primary"><i class="fas fa-filter"></i> Apply</button>
         <a href="business-reports.php" class="btn btn-secondary"><i class="fas fa-sync"></i></a>
       </div>
     </form>
@@ -75,32 +81,11 @@ $category_options = mysqli_query($conn, "SELECT name FROM category");
       </div>
     </div>
 
-    <!-- Category Summary -->
-    <div class="card mb-4">
-      <div class="card-header d-flex justify-content-between align-items-center">
-        <h3 class="card-title">Businesses by Category</h3>
-        <a href="export_category_report.php" class="btn btn-sm btn-success"><i class="fas fa-file-excel"></i> Export CSV</a>
-      </div>
-      <div class="card-body table-responsive">
-        <table class="table table-bordered table-striped">
-          <thead><tr><th>Category</th><th>Total</th></tr></thead>
-          <tbody>
-            <?php while($row = mysqli_fetch_assoc($by_category)): ?>
-              <tr>
-                <td><span class="badge bg-secondary"><?= htmlspecialchars($row['category']) ?></span></td>
-                <td><?= $row['count'] ?></td>
-              </tr>
-            <?php endwhile; ?>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Recent Business Listings -->
+    <!-- All Business Listings -->
     <div class="card">
       <div class="card-header d-flex justify-content-between align-items-center">
-        <h3 class="card-title">Recent Business Listings</h3>
-        <a href="export_recent_businesses.php" class="btn btn-sm btn-success"><i class="fas fa-file-excel"></i> Export Excel</a>
+        <h3 class="card-title">All Businesses</h3>
+        <a href="export_businesses.php" class="btn btn-sm btn-success"><i class="fas fa-file-excel"></i> Export Excel</a>
       </div>
       <div class="card-body table-responsive">
         <table class="table table-striped table-bordered">
@@ -117,7 +102,7 @@ $category_options = mysqli_query($conn, "SELECT name FROM category");
             </tr>
           </thead>
           <tbody>
-            <?php while($row = mysqli_fetch_assoc($recent)): ?>
+            <?php while($row = mysqli_fetch_assoc($businesses)): ?>
               <tr>
                 <td><?= $row['id'] ?></td>
                 <td><?= htmlspecialchars($row['name']) ?></td>
@@ -143,6 +128,20 @@ $category_options = mysqli_query($conn, "SELECT name FROM category");
             <?php endwhile; ?>
           </tbody>
         </table>
+
+        <?php if ($total_pages > 1): ?>
+          <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center mt-4">
+              <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+                <li class="page-item <?= ($page == $i) ? 'active' : '' ?>">
+                  <a class="page-link" href="?<?= http_build_query(array_merge($_GET, ['page' => $i])) ?>">
+                    <?= $i ?>
+                  </a>
+                </li>
+              <?php endfor; ?>
+            </ul>
+          </nav>
+        <?php endif; ?>
       </div>
     </div>
   </section>

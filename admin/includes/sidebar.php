@@ -103,7 +103,7 @@ $reports_active = in_array($current_page, $reports_pages) ? 'active' : '';
          
             </li>
          
-        <!--    <li class="nav-item">
+          <li class="nav-item">
               <a href="post-reports.php" class="nav-link <?= isActive('post-reports.php', $current_page) ?>">
                 <i class="far fa-circle nav-icon text-secondary"></i>
                 <p>Post Report</p>
@@ -111,7 +111,7 @@ $reports_active = in_array($current_page, $reports_pages) ? 'active' : '';
             </li>
           </ul>
         </li>
--->
+
 
         <!-- Logout -->
         <li class="nav-item mt-auto">

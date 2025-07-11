@@ -1,207 +1,120 @@
 <?php
 include 'db.php';
+include 'includes/header.php';
 include 'includes/sidebar.php';
 
-// Pagination settings
-$limit = 10;
-$page = isset($_GET['page']) && is_numeric($_GET['page']) ? intval($_GET['page']) : 1;
-$offset = ($page - 1) * $limit;
+// Filter logic
+$filter_start = $_GET['start_date'] ?? '';
+$filter_end = $_GET['end_date'] ?? '';
 
-// Filters and search
-$filter_category = isset($_GET['category']) ? $_GET['category'] : '';
-$filter_location = isset($_GET['location']) ? $_GET['location'] : '';
-$search = isset($_GET['search']) ? $_GET['search'] : '';
-
-// Build WHERE clauses dynamically
 $where = [];
-if ($filter_category !== '') {
-    $where[] = "category = '" . mysqli_real_escape_string($conn, $filter_category) . "'";
-}
-if ($filter_location !== '') {
-    $where[] = "location = '" . mysqli_real_escape_string($conn, $filter_location) . "'";
-}
-if ($search !== '') {
-    $search_esc = mysqli_real_escape_string($conn, $search);
-    $where[] = "(title LIKE '%$search_esc%' OR description LIKE '%$search_esc%')";
-}
-$where_sql = '';
-if (count($where) > 0) {
-    $where_sql = "WHERE " . implode(' AND ', $where);
+$params = [];
+
+if ($filter_start && $filter_end) {
+    $where[] = "DATE(created_at) BETWEEN ? AND ?";
+    $params[] = $filter_start;
+    $params[] = $filter_end;
 }
 
-// Get total records count
-$count_query = "SELECT COUNT(*) AS total FROM posts $where_sql";
-$count_result = mysqli_query($conn, $count_query);
-$total_rows = mysqli_fetch_assoc($count_result)['total'];
-$total_pages = ceil($total_rows / $limit);
+$where_clause = count($where) ? 'WHERE ' . implode(' AND ', $where) : '';
 
-// Fetch filtered posts
-$data_query = "SELECT * FROM posts $where_sql ORDER BY created_at DESC LIMIT $limit OFFSET $offset";
-$data_result = mysqli_query($conn, $data_query);
+// Pagination
+$per_page = 10;
+$page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int) $_GET['page'] : 1;
+$offset = ($page - 1) * $per_page;
 
-// Fetch distinct categories and locations for filters
-$categories_result = mysqli_query($conn, "SELECT DISTINCT category FROM posts");
-$locations_result = mysqli_query($conn, "SELECT DISTINCT location FROM posts");
+$sql = "SELECT * FROM posts $where_clause ORDER BY created_at DESC LIMIT ? OFFSET ?";
+$params[] = $per_page;
+$params[] = $offset;
+$types = str_repeat('s', count($params) - 2) . 'ii';
 
-// Handle export request
-if (isset($_GET['export'])) {
-    $export_type = $_GET['export'];
-    $export_query = "SELECT * FROM posts $where_sql ORDER BY created_at DESC";
-    $export_result = mysqli_query($conn, $export_query);
+$stmt = $conn->prepare($sql);
+if (!empty($params)) $stmt->bind_param($types, ...$params);
+$stmt->execute();
+$posts = $stmt->get_result();
 
-    if ($export_type === 'csv') {
-        header('Content-Type: text/csv');
-        header('Content-Disposition: attachment;filename=posts_export.csv');
-        $output = fopen('php://output', 'w');
-        fputcsv($output, ['ID', 'Business ID', 'Title', 'Category', 'Location', 'Description', 'Status', 'Created At']);
-        while ($row = mysqli_fetch_assoc($export_result)) {
-            fputcsv($output, $row);
-        }
-        fclose($output);
-        exit;
-    } elseif ($export_type === 'pdf') {
-        header('Content-Type: application/pdf');
-        header('Content-Disposition: attachment;filename=posts_export.pdf');
-        echo "ID | Business ID | Title | Category | Location | Description | Status | Created At\n";
-        while ($row = mysqli_fetch_assoc($export_result)) {
-            echo implode(' | ', $row) . "\n";
-        }
-        exit;
-    }
+$count_sql = "SELECT COUNT(*) AS total FROM posts $where_clause";
+$count_stmt = $conn->prepare($count_sql);
+if (!empty($where)) {
+    $bind_types = str_repeat('s', count($params) - 2);
+    $count_stmt->bind_param($bind_types, ...array_slice($params, 0, -2));
 }
+$count_stmt->execute();
+$result = $count_stmt->get_result();
+$count_data = $result->fetch_assoc();
+$total_pages = ceil($count_data['total'] / $per_page);
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Post Reports - Yellow Diary</title>
-<!-- Bootstrap 5 CSS CDN -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-<style>
-  body {
-    background-color: #f8f9fa;
-  }
-  .container {
-    margin-top: 40px;
-  }
-  .table-responsive {
-    box-shadow: 0 0 15px rgba(0,0,0,0.1);
-    border-radius: 8px;
-    overflow: hidden;
-  }
-  .truncate {
-    max-width: 300px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-</style>
-</head>
-<body>
-  
+<div class="content-wrapper">
+  <section class="content-header">
+    <h1 class="mb-3">Post Reports</h1>
+  </section>
 
-<div class="container">
-  <h2 class="mb-4 text-primary">Post Reports</h2>
+  <section class="content">
+    <!-- Filters -->
+    <form class="row mb-4" method="GET">
+      <div class="col-md-3">
+        <input type="date" name="start_date" class="form-control" value="<?= htmlspecialchars($filter_start) ?>">
+      </div>
+      <div class="col-md-3">
+        <input type="date" name="end_date" class="form-control" value="<?= htmlspecialchars($filter_end) ?>">
+      </div>
+      <div class="col-md-3 mt-2">
+        <button type="submit" class="btn btn-primary"><i class="fas fa-filter"></i> Apply</button>
+        <a href="post-reports.php" class="btn btn-secondary"><i class="fas fa-sync"></i></a>
+      </div>
+    </form>
 
-  <form method="GET" class="row g-3 align-items-center mb-4">
-    <div class="col-md-4">
-      <input type="text" name="search" class="form-control" placeholder="Search title or description" value="<?= htmlspecialchars($search) ?>" />
-    </div>
-    <div class="col-md-3">
-      <select name="category" class="form-select">
-        <option value="">-- Select Category --</option>
-        <?php while ($cat = mysqli_fetch_assoc($categories_result)): ?>
-          <option value="<?= htmlspecialchars($cat['category']) ?>" <?= $filter_category === $cat['category'] ? 'selected' : '' ?>>
-            <?= htmlspecialchars($cat['category']) ?>
-          </option>
-        <?php endwhile; ?>
-      </select>
-    </div>
-    <div class="col-md-3">
-      <select name="location" class="form-select">
-        <option value="">-- Select Location --</option>
-        <?php while ($loc = mysqli_fetch_assoc($locations_result)): ?>
-          <option value="<?= htmlspecialchars($loc['location']) ?>" <?= $filter_location === $loc['location'] ? 'selected' : '' ?>>
-            <?= htmlspecialchars($loc['location']) ?>
-          </option>
-        <?php endwhile; ?>
-      </select>
-    </div>
-    <div class="col-md-2 d-grid">
-      <button type="submit" class="btn btn-primary">Filter</button>
-    </div>
-  </form>
-
-  <div class="mb-3">
-    <span>Export: </span>
-    <a href="?<?= http_build_query(array_merge($_GET, ['export' => 'csv', 'page' => 1])) ?>" class="btn btn-outline-success btn-sm me-2">CSV</a>
-    <a href="?<?= http_build_query(array_merge($_GET, ['export' => 'pdf', 'page' => 1])) ?>" class="btn btn-outline-danger btn-sm">PDF</a>
-  </div>
-
-  <div class="table-responsive">
-    <table class="table table-striped table-hover align-middle">
-      <thead class="table-primary">
-        <tr>
-          <th>ID</th>
-          <th>Business ID</th>
-          <th>Title</th>
-          <th>Category</th>
-          <th>Location</th>
-          <th>Description</th>
-          <th>Status</th>
-          <th>Created At</th>
-        </tr>
-      </thead>
-      <tbody>
-        <?php if ($data_result && mysqli_num_rows($data_result) > 0): ?>
-          <?php while ($row = mysqli_fetch_assoc($data_result)): ?>
+    <!-- All Post Listings -->
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h3 class="card-title">All Posts</h3>
+        <a href="export_posts.php?start_date=<?= $filter_start ?>&end_date=<?= $filter_end ?>" class="btn btn-sm btn-success">
+          <i class="fas fa-file-excel"></i> Export Excel
+        </a>
+      </div>
+      <div class="card-body table-responsive">
+        <table class="table table-striped table-bordered">
+          <thead>
             <tr>
-              <td><?= htmlspecialchars($row['id']) ?></td>
-              <td><?= htmlspecialchars($row['business_id']) ?></td>
-              <td><?= htmlspecialchars($row['title']) ?></td>
-              <td><?= htmlspecialchars($row['category']) ?></td>
-              <td><?= htmlspecialchars($row['location']) ?></td>
-              <td class="truncate" title="<?= htmlspecialchars(strip_tags($row['description'])) ?>">
-                <?= htmlspecialchars(substr(strip_tags($row['description']), 0, 80)) ?>...
-              </td>
-              <td>
-                <?php if (strtolower($row['status']) === 'active'): ?>
-                  <span class="badge bg-success"><?= htmlspecialchars($row['status']) ?></span>
-                <?php else: ?>
-                  <span class="badge bg-secondary"><?= htmlspecialchars($row['status']) ?></span>
-                <?php endif; ?>
-              </td>
-              <td><?= htmlspecialchars(date('d M Y, H:i', strtotime($row['created_at']))) ?></td>
+              <th>ID</th>
+              <th>Title</th>
+              <th>Category</th>
+              <th>Business</th>
+              <th>Location</th>
+              <th>Created At</th>
             </tr>
-          <?php endwhile; ?>
-        <?php else: ?>
-          <tr><td colspan="8" class="text-center">No posts found.</td></tr>
+          </thead>
+          <tbody>
+            <?php while($row = mysqli_fetch_assoc($posts)): ?>
+              <tr>
+                <td><?= $row['id'] ?></td>
+                <td><?= htmlspecialchars($row['title']) ?></td>
+                <td><span class="badge bg-primary"><?= htmlspecialchars($row['category']) ?></span></td>
+                <td><?= htmlspecialchars($row['business_id']) ?></td>
+                <td><?= htmlspecialchars($row['location']) ?></td>
+                <td><?= date('Y-m-d', strtotime($row['created_at'])) ?></td>
+              </tr>
+            <?php endwhile; ?>
+          </tbody>
+        </table>
+
+        <?php if ($total_pages > 1): ?>
+          <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center mt-4">
+              <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+                <li class="page-item <?= ($page == $i) ? 'active' : '' ?>">
+                  <a class="page-link" href="?<?= http_build_query(array_merge($_GET, ['page' => $i])) ?>">
+                    <?= $i ?>
+                  </a>
+                </li>
+              <?php endfor; ?>
+            </ul>
+          </nav>
         <?php endif; ?>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- Pagination -->
-  <?php if ($total_pages > 1): ?>
-    <nav aria-label="Page navigation">
-      <ul class="pagination justify-content-center">
-        <?php for ($p = 1; $p <= $total_pages; $p++): ?>
-          <li class="page-item <?= $p === $page ? 'active' : '' ?>">
-            <a class="page-link" href="?<?= http_build_query(array_merge($_GET, ['page' => $p])) ?>"><?= $p ?></a>
-          </li>
-        <?php endfor; ?>
-      </ul>
-    </nav>
-  <?php endif; ?>
-
+      </div>
+    </div>
+  </section>
 </div>
 
-<!-- Bootstrap 5 JS Bundle -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-</body>
-</html>
-
-<?php mysqli_close($conn); ?>
+<?php include 'includes/footer.php'; ?>
