@@ -21,7 +21,7 @@ $reports_active = in_array($current_page, $reports_pages) ? 'active' : '';
 ?>
 
 <!-- Main Sidebar Container -->
-<aside class="main-sidebar sidebar-dark-primary elevation-4">
+<aside class="main-sidebar sidebar-dark-primary elevation-4" style="position: fixed; height: 100vh; overflow-y: auto;">
   <!-- Brand Logo -->
   <a href="index.php" class="brand-link d-flex align-items-center">
     <i class="fas fa-book-reader fa-lg mx-2"></i>
