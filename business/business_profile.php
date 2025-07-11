@@ -17,11 +17,17 @@ $result = $stmt->get_result();
 $business = $result->fetch_assoc();
 ?>
 
-
 <?php include 'includes/header.php'; ?>
+
 <div class="container mt-4">
     
     <h2 class="mb-3">Business Profile</h2>
+
+    <div class="mb-3 text-start">
+        <a href="dashboard.php" class="btn btn-primary">
+            ← Go Back to Dashboard
+        </a>
+    </div>
 
     <div class="row">
         <div class="col-md-8">
@@ -36,7 +42,7 @@ $business = $result->fetch_assoc();
                     <p><strong>Location:</strong> <?= htmlspecialchars($business['location']) ?></p>
                     <p><strong>Website:</strong> 
                         <?php if (!empty($business['url'])): ?>
-                            <a href="<?= htmlspecialchars($business['url']) ?>" target="_blank"><?= htmlspecialchars($business['url']) ?></a>
+                            <a href="<?= htmlspecialchars($business['url']) ?>" target="_blank" rel="noopener noreferrer"><?= htmlspecialchars($business['url']) ?></a>
                         <?php else: ?>
                             N/A
                         <?php endif; ?>
@@ -65,10 +71,10 @@ $business = $result->fetch_assoc();
                 </div>
                 <div class="card-body text-center">
                     <?php
-                        $imagePath = "../admin/" . ($business['image'] ?? '../images/default-business.png');
-                        if (!empty($business['image']) && file_exists("../admin/" . $business['image'])):
+                        $imagePath = "../admin/" . ($business['image'] ?? '');
+                        if (!empty($business['image']) && file_exists($imagePath)):
                     ?>
-                        <img src="<?= htmlspecialchars($imagePath)  ?>" class="img-fluid img-thumbnail" alt="Business Image" style="max-height: 200px;">
+                        <img src="<?= htmlspecialchars($imagePath) ?>" class="img-fluid img-thumbnail" alt="Business Image" style="max-height: 200px;">
                     <?php else: ?>
                         <img src="../uploads/default.png" class="img-fluid img-thumbnail" alt="Default Image" style="max-height: 200px;">
                     <?php endif; ?>

@@ -42,7 +42,12 @@ if ($result->num_rows > 0) {
       </div>
     </nav>
 
-    
+    <!-- Go Back to Home Button -->
+    <div class="container-fluid px-4 my-3">
+      <a href="../index.php" class="btn btn-primary">
+        ← Go Back to Home
+      </a>
+    </div>
 
     <div class="container-fluid px-4">
       <h2>Business Details</h2>
@@ -96,7 +101,6 @@ if ($result->num_rows > 0) {
             </div>
             <div class="card-body text-center">
               <?php
-
                 $imagePath ="../admin/" . ($business['image'] ?? '../images/default-business.png');
                 $imageUrl = "../admin/" . ($business['image'] ?? '../images/default-business.png');
               ?>

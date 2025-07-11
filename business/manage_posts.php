@@ -32,10 +32,16 @@ $result = $stmt->get_result();
 <div class="container mt-4">
     <h2 class="mb-4 text-center">📋 Manage My Posts</h2>
 
+    <div class="mb-3 text-start">
+        <a href="dashboard.php" class="btn btn-primary">
+            ← Go Back to Dashboard
+        </a>
+    </div>
+
     <?php if (!empty($message)): ?>
         <div class="alert alert-info alert-dismissible fade show" role="alert">
-            <?= $message ?>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <?= htmlspecialchars($message) ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     <?php endif; ?>
 
@@ -58,7 +64,7 @@ $result = $stmt->get_result();
                             <td><?= htmlspecialchars($row['title']) ?></td>
                             <td class="text-center">
                                 <span class="badge <?= $row['status'] === 'published' ? 'bg-success' : 'bg-warning text-dark' ?>">
-                                    <?= ucfirst($row['status']) ?>
+                                    <?= ucfirst(htmlspecialchars($row['status'])) ?>
                                 </span>
                             </td>
                             <td><?= date('d M Y, H:i', strtotime($row['created_at'])) ?></td>
@@ -82,7 +88,7 @@ $result = $stmt->get_result();
         </div>
     <?php else: ?>
         <div class="alert alert-warning text-center">
-            No posts found. <a href="edit_post.php" class="btn btn-sm btn-primary ms-2">Create One Now</a>
+            No posts found. <a href="create_post.php" class="btn btn-sm btn-primary ms-2">Create One Now</a>
         </div>
     <?php endif; ?>
 </div>
