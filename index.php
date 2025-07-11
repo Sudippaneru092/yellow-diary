@@ -1040,6 +1040,8 @@ p {
     </form>
 
     <div class="advanced-toggle">
+
+    
       <button type="button" onclick="toggleAdvancedSearch()">⚙️ Advanced Search</button>
     </div>
 
@@ -1087,8 +1089,98 @@ p {
       <input type="hidden" name="lng" id="lng">
       <button type="submit" class="search-button">Advanced Search</button>
     </form>
-  </section>
+     <!-- Saved Searches (from cookie or DB) -->
+  <?php
+  $savedSearches = [];
 
+  if (isset($_SESSION['business_id'])) {
+      $business_id = $_SESSION['business_id'];
+      $searchStmt = $conn->prepare("SELECT * FROM saved_searches WHERE business_id = ? ORDER BY created_at DESC LIMIT 5");
+      $searchStmt->bind_param("i", $business_id);
+      $searchStmt->execute();
+      $searchResult = $searchStmt->get_result();
+      while ($row = $searchResult->fetch_assoc()) {
+          $savedSearches[] = $row;
+      }
+  } elseif (isset($_COOKIE['guest_searches'])) {
+      $savedSearches = json_decode($_COOKIE['guest_searches'], true);
+  }
+  ?>
+
+<?php if (!empty($savedSearches)): ?>
+  <section class="saved-searches">
+    <h3>⭐ Your Recent Searches</h3>
+    <ul>
+      <?php foreach ($savedSearches as $search):
+        $query = trim($search['query'] ?? '');
+        $name = trim($search['name_filter'] ?? ($search['name'] ?? ''));
+        $category = trim($search['category_filter'] ?? $search['category'] ?? '');
+        $location = trim($search['location_filter'] ?? $search['location'] ?? '');
+        $radius = $search['radius'] ?? $search['radius_km'] ?? '';
+        $lat = $search['lat'] ?? $search['latitude'] ?? '';
+        $lng = $search['lng'] ?? $search['longitude'] ?? '';
+
+        // Build parts of the sentence
+        $parts = [];
+
+        if ($query !== '') {
+          $parts[] = "Searched for \"{$query}\"";
+        }
+
+        if ($name !== '') {
+          $parts[] = "Business name \"{$name}\"";
+        }
+
+        if ($category !== '') {
+          $parts[] = "category \"{$category}\"";
+        }
+
+        if ($location !== '') {
+          $parts[] = "in location \"{$location}\"";
+        }
+
+        if (!($radius === 0)) {
+          $parts[] = "within {$radius} km radius";
+        }
+        if(($name === '' && $category === '' && $location === '' &&  $query === '')&& $radius !== 0 ) {
+          $parts[0] = "Busniesses within {$radius} km radius";
+        }
+
+        // Optionally add coordinates (if you want)
+        // if ($lat !== '' && $lng !== '') {
+        //   $parts[] = "near coordinates ({$lat}, {$lng})";
+        // }
+
+        // Combine all parts with commas, but keep sentence readable
+        $sentence = implode(', ', $parts);
+
+        // If no filters at all, default message
+        if ($sentence === '') {
+          $sentence = "A previous search";
+        }
+      ?>
+        <li>
+          <form action="search_results.php" method="GET" style="display:inline;">
+            <input type="hidden" name="query" value="<?= htmlspecialchars($query) ?>">
+            <input type="hidden" name="name" value="<?= htmlspecialchars($name) ?>">
+            <input type="hidden" name="category" value="<?= htmlspecialchars($category) ?>">
+            <input type="hidden" name="location" value="<?= htmlspecialchars($location) ?>">
+            <input type="hidden" name="lat" value="<?= htmlspecialchars($lat) ?>">
+            <input type="hidden" name="lng" value="<?= htmlspecialchars($lng) ?>">
+            <input type="hidden" name="radius" value="<?= htmlspecialchars($radius) ?>">
+
+            <button type="submit" style="text-align:left; white-space:normal;">
+              <?= htmlspecialchars($sentence) ?>
+            </button>
+          </form>
+        </li>
+      <?php endforeach; ?>
+    </ul>
+  </section>
+<?php endif; ?>
+
+  </section>
+    
   <!-- Categories -->
   <div class="categories">
     <button class="category active" data-category="all">All</button>

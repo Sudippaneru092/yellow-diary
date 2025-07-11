@@ -11,10 +11,7 @@ $lat = $_GET['lat'] ?? '';
 $lng = $_GET['lng'] ?? '';
 
 $where = "WHERE status IN ('approved', 'active')";
-
 $conditions = [];
-
-// Exclude invalid coordinates always
 
 // Basic Search
 if (!empty($query)) {
@@ -36,7 +33,7 @@ if (!empty($location) && $location !== 'Near Me') {
     $conditions[] = "location LIKE '%$safe%'";
 }
 
-// Radius (Haversine formula for nearby businesses)
+// Radius search (Haversine formula)
 if (!empty($lat) && !empty($lng) && !empty($radius)) {
     $radius = (float)$radius;
     $lat = (float)$lat;
@@ -56,11 +53,76 @@ if (!empty($conditions)) {
     $where .= ' AND ' . implode(' AND ', $conditions);
 }
 
-
 $sql = "SELECT * FROM businesses $where ORDER BY created_at DESC";
 $result = mysqli_query($conn, $sql);
 
+// Auto-save search if any filter is applied
+if (!empty($_GET)) {
+    $queryVal = mysqli_real_escape_string($conn, $query);
+    $nameVal = mysqli_real_escape_string($conn, $name);
+    $categoryVal = mysqli_real_escape_string($conn, $category);
+    $locationVal = mysqli_real_escape_string($conn, $location);
+    $latVal = (float)$lat;
+    $lngVal = (float)$lng;
+    $radiusVal = (int)$radius;
+
+    $search_hash = md5($queryVal . $nameVal . $categoryVal . $locationVal . $latVal . $lngVal . $radiusVal);
+
+    if (isset($_SESSION['business_id'])) {
+        $business_id = $_SESSION['business_id'];
+
+        // Check for existing saved search using prepared statement
+        $check_stmt = $conn->prepare("SELECT id FROM saved_searches 
+            WHERE business_id = ? 
+            AND MD5(CONCAT(query, name_filter, category_filter, location_filter, lat, lng, radius)) = ?");
+        $check_stmt->bind_param("is", $business_id, $search_hash);
+        $check_stmt->execute();
+        $check_result = $check_stmt->get_result();
+
+        if ($check_result->num_rows === 0) {
+            $autoName = "Auto Saved on " . date("M d, Y H:i");
+            $stmt = $conn->prepare("INSERT INTO saved_searches 
+                (business_id, name, query, name_filter, category_filter, location_filter, lat, lng, radius) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param("issssssdd", $business_id, $autoName, $queryVal, $nameVal, $categoryVal, $locationVal, $latVal, $lngVal, $radiusVal);
+            $stmt->execute();
+        }
+    } else {
+        // Not logged in — save to cookie
+        $searchData = [
+            'query' => $queryVal,
+            'name' => $nameVal,
+            'category' => $categoryVal,
+            'location' => $locationVal,
+            'lat' => $latVal,
+            'lng' => $lngVal,
+            'radius' => $radiusVal,
+            'saved_at' => date('Y-m-d H:i:s')
+        ];
+
+        $existing = isset($_COOKIE['guest_searches']) ? json_decode($_COOKIE['guest_searches'], true) : [];
+
+        $is_duplicate = false;
+        foreach ($existing as $item) {
+            $item_hash = md5(
+                $item['query'] . $item['name'] . $item['category'] . $item['location'] .
+                $item['lat'] . $item['lng'] . $item['radius']
+            );
+            if ($item_hash === $search_hash) {
+                $is_duplicate = true;
+                break;
+            }
+        }
+
+        if (!$is_duplicate) {
+            array_unshift($existing, $searchData); // Add new on top
+            $existing = array_slice($existing, 0, 5); // Keep only latest 5
+            setcookie("guest_searches", json_encode($existing), time() + (86400 * 30), "/"); // 30 days
+        }
+    }
+}
 ?>
+
 
 <!-- Display Results -->
 <!DOCTYPE html>
