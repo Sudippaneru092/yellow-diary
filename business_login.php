@@ -106,18 +106,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </head>
 <body>
 
-<header class="header">
-  <div class="navbar">
-    <h1>Yellow Diary</h1>
-    <nav class="nav">
-      <a href="/">Home</a>
-      <a href="service.php">Services</a>
-      <a href="submit_business.php">Submit Business</a>
-      <a href="contact.php">Contact</a>
-      <a href="business_login.php" class="active">Business Login</a>
-    </nav>
-  </div>
-</header>
+<?php include "header.php"; ?>
 
 <main class="main-content">
   <div class="login-container">
