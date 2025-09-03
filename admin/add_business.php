@@ -1,7 +1,4 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
 
 session_start();
 if (!isset($_SESSION['admin'])) {
@@ -15,12 +12,14 @@ include 'db.php'; // only DB needed before logic
 $name = $category = $location = $areas = $description = $url = "";
 $imagePath = "";
 $errors = [];
+$exists = false;
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $name = trim($_POST['name']);
     $category = trim($_POST['category']);
-    $location = trim($_POST['location']);
-    $areas = trim($_POST['areas']);
+    $location = trim($_POST['city_id'] ?? ''); // matches <select name="city_id">
+    $areas    = trim($_POST['area'] ?? '');    // matches <select name="area">
+
     $description = trim($_POST['description']);
     $url = trim($_POST['url']);
 
@@ -53,6 +52,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     if (empty($errors)) {
+        // Get city name
         $stmtCity = $conn->prepare("SELECT name FROM cities WHERE id = ?");
         $stmtCity->bind_param("i", $location);
         $stmtCity->execute();
@@ -61,20 +61,47 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmtCity->close();
 
         $fullLocation = $cityName . ", " . $areas;
+        $slug = strtolower(preg_replace("/[^a-z0-9]+/", "-", $name));
 
-        $stmt = $conn->prepare("INSERT INTO businesses (name, category, location, description, image, url, created_at, status) VALUES (?, ?, ?, ?, ?, ?, NOW(), 'pending')");
-        $stmt->bind_param("ssssss", $name, $category, $fullLocation, $description, $imagePath, $url);
+        // Duplicate check (name + location)
+        $checkStmt = $conn->prepare("SELECT id FROM businesses WHERE name = ? AND location = ?");
+        $checkStmt->bind_param("ss", $name, $fullLocation);
+        $checkStmt->execute();
+        $checkStmt->store_result();
 
-        if ($stmt->execute()) {
-            $_SESSION['success'] = "Business added successfully and is pending approval.";
-            header("Location: manage_business.php");
-            exit;
+        if ($checkStmt->num_rows > 0) {
+            $exists = true;
+            $errors[] = "A business with this name already exists in the same location.";
         } else {
-            $errors[] = "Database error: " . $stmt->error;
+            $stmt = $conn->prepare("INSERT INTO businesses 
+                (name, category, location, description, image, url, created_at, slug, status) 
+                VALUES (?, ?, ?, ?, ?, ?, NOW(), ?, 'pending')");
+            $stmt->bind_param("sssssss", $name, $category, $fullLocation, $description, $imagePath, $url, $slug);
+
+            if ($stmt->execute()) {
+                $_SESSION['success'] = "Business added successfully and is pending approval.";
+                header("Location: manage_business.php");
+                exit;
+            } else {
+                // Handle duplicate key errors gracefully
+                if ($stmt->errno == 1062) {
+                    if (strpos($stmt->error, 'url') !== false) {
+                        $errors[] = "This website URL is already registered.";
+                    } elseif (strpos($stmt->error, 'slug') !== false) {
+                        $errors[] = "A business with a similar name already exists.";
+                    } else {
+                        $errors[] = "Duplicate entry detected. Please change your data.";
+                    }
+                } else {
+                    $errors[] = "Could not add business. Please try again." ;
+                }
+            }
+            $stmt->close();
         }
-        $stmt->close();
+        $checkStmt->close();
     }
 }
+
 
 // ✅ Only output HTML after all processing is done:
 include 'includes/header.php';
@@ -122,34 +149,24 @@ include 'includes/sidebar.php';
         </select>
       </div>
 
-      <div class="mb-3">
-        <label for="city" class="form-label">City <span class="text-danger">*</span></label>
-        <select name="location" id="city" class="form-select" required>
+      <label>City*</label>
+      <select name="city_id" id="citySelect" required>
           <option value="">Select City</option>
           <?php
           $cities = $conn->query("SELECT id, name FROM cities ORDER BY name");
-          while ($row = $cities->fetch_assoc()): ?>
-            <option value="<?= $row['id'] ?>" <?= ($row['id'] == $location) ? 'selected' : '' ?>>
-              <?= htmlspecialchars($row['name']) ?>
-            </option>
-          <?php endwhile; ?>
-        </select>
-      </div>
-
-      <div class="mb-3">
-        <label for="areas" class="form-label">Area <span class="text-danger">*</span></label>
-        <select name="areas" id="areas" class="form-select" required>
-          <option value="">Select Area</option>
-          <?php
-               $areas = $conn->query("SELECT id, name FROM areas ORDER BY name");
-                while ($row = $areas->fetch_assoc()): ?>
-            <option value="<?= $row['id'] ?>" <?= ($row['id'] == $location) ? 'selected' : '' ?>>
-              <?= htmlspecialchars($row['name']) ?>
-            </option>
-          <?php endwhile; ?>
+          while ($row = $cities->fetch_assoc()):
           ?>
-        </select>
-      </div>
+              <option value="<?= $row['id'] ?>" <?= ($row['id'] == ($fields['city_id'] ?? '')) ? 'selected' : '' ?>>
+                  <?= htmlspecialchars($row['name']) ?>
+              </option>
+          <?php endwhile; ?>
+      </select>
+      <input type="hidden" name="city" id="cityNameHidden" value="<?= htmlspecialchars($fields['city'] ?? '') ?>">
+
+      <label>Area*</label>
+      <select name="area" id="areaSelect" required>
+          <option value="">Select Area</option>
+      </select>
 
       <div class="mb-3">
         <label for="description" class="form-label">Description</label>
@@ -172,46 +189,55 @@ include 'includes/sidebar.php';
 </div>
   </form>
 <script>
-  // Load areas dynamically when city changes
-  document.getElementById('city').addEventListener('change', function () {
-    const cityId = this.value;
-    const areaSelect = document.getElementById('areas');
-    areaSelect.innerHTML = '<option value="">Loading...</option>';
+document.addEventListener("DOMContentLoaded", function () {
+    const citySelect = document.getElementById('citySelect');
+    const cityNameHidden = document.getElementById('cityNameHidden');
+    const areaSelect = document.getElementById('areaSelect');
 
-    if (cityId) {
-      fetch('get_areas.php?city_id=' + cityId)
-        .then(response => response.json())
-        .then(data => {
-          areaSelect.innerHTML = '<option value="">Select Area</option>';
-          data.forEach(area => {
-            const option = document.createElement('option');
-            option.value = area.name;  // assuming get_areas.php returns array of {id, name}
-            option.textContent = area.name;
-            areaSelect.appendChild(option);
-          });
+    function loadAreas(cityId, selectedArea = null) {
+        if (!cityId) {
+            areaSelect.innerHTML = '<option value="">Select Area</option>';
+            return;
+        }
 
-          // If previously selected area exists, reselect it
-          const selectedArea = "<?= addslashes($areas) ?>";
-          if(selectedArea) {
-            areaSelect.value = selectedArea;
-          }
+        areaSelect.innerHTML = '<option value="">Loading...</option>';
+
+       fetch('get_areas.php?city_id=' + cityId)
+        .then(response => response.text())  // get raw text first
+        .then(text => {
+            let data = [];
+            try {
+                data = JSON.parse(text);
+            } catch (err) {
+                console.error('Invalid JSON', text, err);
+            }
+            let options = '<option value="">Select Area</option>';
+            data.forEach(areaName => {
+                options += `<option value="${areaName}">${areaName}</option>`;
+            });
+            areaSelect.innerHTML = options;
         })
         .catch(err => {
-          areaSelect.innerHTML = '<option value="">Failed to load areas</option>';
-          console.error(err);
+            console.error(err);
+            areaSelect.innerHTML = '<option value="">Error loading areas</option>';
         });
-    } else {
-      areaSelect.innerHTML = '<option value="">Select Area</option>';
-    }
-  });
 
-  // Pre-load areas if city was already selected (e.g. on form validation failure)
-  window.addEventListener('DOMContentLoaded', () => {
-    const citySelect = document.getElementById('city');
-    if (citySelect.value) {
-      citySelect.dispatchEvent(new Event('change'));
     }
-  });
+
+    citySelect.addEventListener('change', function () {
+        const cityId = this.value;
+        const cityName = this.options[this.selectedIndex].text;
+        cityNameHidden.value = cityName;
+
+        loadAreas(cityId); // reload areas on city change
+    });
+
+    // On page load, preload areas if editing a business
+    if (citySelect.value) {
+        const selectedArea = '<?= isset($fields["area"]) ? htmlspecialchars($fields["area"]) : "" ?>';
+        loadAreas(citySelect.value, selectedArea);
+    }
+});
 </script>
 
 <?php include 'includes/footer.php'; ?>

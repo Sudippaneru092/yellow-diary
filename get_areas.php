@@ -3,18 +3,19 @@ include "admin/db.php";
 
 header('Content-Type: application/json');
 
-$city_id = (int) ($_GET['city_id'] ?? 0);
-
-$areas = [];
-if ($city_id > 0) {
-    $stmt = $conn->prepare("SELECT id, name FROM areas WHERE city_id = ? ORDER BY name");
-    $stmt->bind_param("i", $city_id);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    while ($row = $result->fetch_assoc()) {
-        $areas[] = $row;
-    }
-    $stmt->close();
+if (!isset($_GET['city_id']) || empty($_GET['city_id'])) {
+    echo json_encode([]);
+    exit;
 }
 
-echo json_encode($areas);
+$city_id = intval($_GET['city_id']);
+
+// Fetch all areas for this city
+$areas = $conn->query("SELECT name FROM areas WHERE city_id = $city_id ORDER BY name");
+
+$result = [];
+while ($row = $areas->fetch_assoc()) {
+    $result[] = $row['name']; // just return names, keeps it simple
+}
+
+echo json_encode($result);
