@@ -11,17 +11,34 @@ if (isset($_GET['delete_id'])) {
 
 // Handle add area form submission at the top before output
 if (isset($_POST['add_area'])) {
-    $area_name = mysqli_real_escape_string($conn, $_POST['area_name']);
+    $area_name = mysqli_real_escape_string($conn, trim($_POST['area_name']));
     $city_id = intval($_POST['city_id']);
     $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $area_name), '-'));
 
-    $sql = "INSERT INTO areas (name, city_id, slug) VALUES ('$area_name', $city_id, '$slug')";
-    if ($conn->query($sql)) {
-        header('Location: manage_areas.php?success=1');
-        exit;
+    // Check for duplicate area in the same city
+    $check_sql = "SELECT id FROM areas WHERE name = ? AND city_id = ? LIMIT 1";
+    $stmt = $conn->prepare($check_sql);
+    $stmt->bind_param("si", $area_name, $city_id);
+    $stmt->execute();
+    $stmt->store_result();
+
+    if ($stmt->num_rows > 0) {
+        $error_msg = "This area already exists for the selected city.";
     } else {
-        $error_msg = "Error: " . $conn->error;
+        // Insert new area
+        $sql = "INSERT INTO areas (name, city_id, slug) VALUES (?, ?, ?)";
+        $insert_stmt = $conn->prepare($sql);
+        $insert_stmt->bind_param("sis", $area_name, $city_id, $slug);
+        if ($insert_stmt->execute()) {
+            header('Location: manage_areas.php?success=1');
+            exit;
+        } else {
+            $error_msg = "Error: " . $conn->error;
+        }
+        $insert_stmt->close();
     }
+
+    $stmt->close();
 }
 
 include('includes/header.php'); 
