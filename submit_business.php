@@ -118,11 +118,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       );
 
       if ($stmt->execute()) {
-        $success = true;
-        $fields = array_map(fn() => '', $fields);
-        $password = $confirmPassword = '';
-      } else {
-        $errors[] = "Database error: " . $stmt->error;
+            $success = true;
+            $fields = array_map(fn() => '', $fields);
+            $password = $confirmPassword = '';
+        } else {
+            // Handle duplicate key error
+           if ($stmt->errno == 1062) {
+              if (strpos($stmt->error, 'email') !== false) {
+                  $errors[] = "This email is already registered.";
+              } elseif (strpos($stmt->error, 'phone') !== false) {
+                  $errors[] = "This phone number is already registered.";
+              } elseif (strpos($stmt->error, 'url') !== false) {
+                  $errors[] = "This website URL is already registered.";
+              } elseif (strpos($stmt->error, 'slug') !== false) {
+                  $errors[] = "A business with a similar name already exists.";
+              } else {
+                  $errors[] = "Please enter another data";
+              }
+            } else {
+                $errors[] = "Unable to register the business";
+            }
       }
       $stmt->close();
     }
