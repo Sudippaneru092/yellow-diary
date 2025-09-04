@@ -277,7 +277,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (citySelect.value) {
       citySelect.dispatchEvent(new Event('change'));
     }
-  });
+  });       
 
   // Real-time & form submission validation
   document.addEventListener("DOMContentLoaded", function () {

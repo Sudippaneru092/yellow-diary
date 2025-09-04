@@ -1,21 +1,16 @@
 <?php
 include "admin/db.php";
 
+$city_id = intval($_GET['city_id'] ?? 0);
+
+$areas = [];
+if ($city_id > 0) {
+    $result = $conn->query("SELECT id, name FROM areas WHERE city_id = $city_id ORDER BY name");
+    while ($row = $result->fetch_assoc()) {
+        // Always return "name"
+        $areas[] = ["id" => $row['id'], "name" => $row['name']];
+    }
+}
+
 header('Content-Type: application/json');
-
-if (!isset($_GET['city_id']) || empty($_GET['city_id'])) {
-    echo json_encode([]);
-    exit;
-}
-
-$city_id = intval($_GET['city_id']);
-
-// Fetch all areas for this city
-$areas = $conn->query("SELECT name FROM areas WHERE city_id = $city_id ORDER BY name");
-
-$result = [];
-while ($row = $areas->fetch_assoc()) {
-    $result[] = $row['name']; // just return names, keeps it simple
-}
-
-echo json_encode($result);
+echo json_encode($areas);
