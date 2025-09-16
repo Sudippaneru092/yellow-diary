@@ -11,7 +11,7 @@ $where = [];
 $params = [];
 
 if ($filter_start && $filter_end) {
-    $where[] = "DATE(created_at) BETWEEN ? AND ?";
+    $where[] = "DATE(p.created_at) BETWEEN ? AND ?";
     $params[] = $filter_start;
     $params[] = $filter_end;
 }
@@ -23,17 +23,32 @@ $per_page = 10;
 $page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int) $_GET['page'] : 1;
 $offset = ($page - 1) * $per_page;
 
-$sql = "SELECT * FROM posts $where_clause ORDER BY created_at DESC LIMIT ? OFFSET ?";
+// SQL with INNER JOIN to include only posts with existing business
+$sql = "SELECT p.*, b.name AS business_name 
+        FROM posts p 
+        INNER JOIN businesses b ON p.business_id = b.id
+        $where_clause 
+        ORDER BY p.created_at DESC 
+        LIMIT ? OFFSET ?";
+
 $params[] = $per_page;
 $params[] = $offset;
-$types = str_repeat('s', count($params) - 2) . 'ii';
+
+// Prepare types: string for dates, integer for limit/offset
+$types = '';
+for ($i = 0; $i < count($params) - 2; $i++) $types .= 's';
+$types .= 'ii';
 
 $stmt = $conn->prepare($sql);
 if (!empty($params)) $stmt->bind_param($types, ...$params);
 $stmt->execute();
 $posts = $stmt->get_result();
 
-$count_sql = "SELECT COUNT(*) AS total FROM posts $where_clause";
+// Total count for pagination (only posts with existing businesses)
+$count_sql = "SELECT COUNT(*) AS total 
+              FROM posts p
+              INNER JOIN businesses b ON p.business_id = b.id
+              $where_clause";
 $count_stmt = $conn->prepare($count_sql);
 if (!empty($where)) {
     $bind_types = str_repeat('s', count($params) - 2);
@@ -91,7 +106,7 @@ $total_pages = ceil($count_data['total'] / $per_page);
                 <td><?= $row['id'] ?></td>
                 <td><?= htmlspecialchars($row['title']) ?></td>
                 <td><span class="badge bg-primary"><?= htmlspecialchars($row['category']) ?></span></td>
-                <td><?= htmlspecialchars($row['business_id']) ?></td>
+                <td><?= htmlspecialchars($row['business_name']) ?></td>
                 <td><?= htmlspecialchars($row['location']) ?></td>
                 <td><?= date('Y-m-d', strtotime($row['created_at'])) ?></td>
               </tr>

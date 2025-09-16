@@ -1,28 +1,32 @@
 <?php
-include 'db.php';
+ini_set('display_errors', 0); // disable errors for JSON
+error_reporting(0);
+include "db.php"; // adjust path if needed
 
-// Validate city_id parameter
-if (!isset($_GET['city_id']) || !is_numeric($_GET['city_id'])) {
-    header('Content-Type: application/json');
+header('Content-Type: application/json');
+
+$city_id = isset($_GET['city_id']) && is_numeric($_GET['city_id']) ? intval($_GET['city_id']) : 0;
+if (!$city_id) {
     echo json_encode([]);
     exit;
 }
 
-$city_id = (int)$_GET['city_id'];
+$stmt = $conn->prepare("SELECT name FROM areas WHERE city_id = ? ORDER BY name");
+if (!$stmt) {
+    echo json_encode([]);
+    exit;
+}
 
-// Prepare and execute query to fetch areas for the city
-$stmt = $conn->prepare("SELECT id, name FROM areas WHERE city_id = ? ORDER BY name");
 $stmt->bind_param("i", $city_id);
 $stmt->execute();
 $result = $stmt->get_result();
 
 $areas = [];
 while ($row = $result->fetch_assoc()) {
-    $areas[] = $row;
+    $areas[] = $row['name'];
 }
 
-// Send JSON response
-header('Content-Type: application/json');
 echo json_encode($areas);
-exit;
-?>
+
+$stmt->close();
+$conn->close();

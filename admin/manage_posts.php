@@ -32,7 +32,7 @@ $total = $conn->query($countSql)->fetch_row()[0];
 $totalPages = ceil($total / $limit);
 
 // Fetch filtered and paginated posts
-$sql = "SELECT p.*, b.name AS business_name 
+$sql = "SELECT p.*, COALESCE(b.name, 'N/A') AS business_name 
         FROM posts p 
         LEFT JOIN businesses b ON p.business_id = b.id 
         WHERE $where
@@ -129,7 +129,7 @@ if (isset($_GET['action'], $_GET['id'])) {
               <td title="<?= htmlspecialchars($post['title']) ?>">
                 <?= strlen($post['title']) > 40 ? substr($post['title'], 0, 40) . '...' : $post['title'] ?>
               </td>
-              <td><?= htmlspecialchars($post['business_name'] ?? 'N/A') ?></td>
+              <td><?= $post['business_name'] ? htmlspecialchars($post['business_name']) : 'N/A' ?></td>
               <td><?= htmlspecialchars($post['category']) ?></td>
               <td><?= htmlspecialchars($post['location']) ?></td>
               <td>

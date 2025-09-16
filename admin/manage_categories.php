@@ -5,8 +5,6 @@ if (!isset($_SESSION['admin'])) {
     exit;
 }
 
-include 'includes/header.php';
-include 'includes/sidebar.php';
 include 'db.php';
 
 // Handle Add Category
@@ -50,6 +48,9 @@ if (isset($_GET['delete'])) {
 
 // Fetch Categories
 $result = $conn->query("SELECT * FROM category ORDER BY id DESC");
+
+include 'includes/header.php';
+include 'includes/sidebar.php';
 ?>
 
 <div class="content-wrapper">
